@@ -9,99 +9,81 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"text/tabwriter"
+	"os/signal"
+	"syscall"
 
-	"github.com/edgexfoundry/exportclient/api"
-	"github.com/edgexfoundry/exportclient/mongo"
-	"github.com/cenkalti/backoff"
+	"github.com/drasko/edgex-exportclient/api"
+
+	"go.uber.org/zap"
+	"gopkg.in/mgo.v2"
 )
 
 const (
-	help string = `
-Usage: exportclient [options]
-Options:
-	-a, --host	Host address
-	-p, --port	Port
-	-m, --mhost	Mongo host
-	-q, --mport	Mongo port
-	-h, --help	Prints this message end exits`
-
-	httpHost = "0.0.0.0"
-	httpPort = "7070"
-	mongoHost = "0.0.0.0"
-	mongoPort = "27017"
+	port        int    = 7070
+	defMongoURL string = "mongodb://0.0.0.0:27017"
+	envMongoURL string = "EXPORT_CLIENT_MONGO_URL"
 )
 
-type (
-	Opts struct {
-		HTTPHost string
-		HTTPPort string
-
-		MongoHost string
-		MongoPort string
-
-		Help    bool
-		Version bool
-	}
-)
-
-var (
-	opts Opts
-)
-
-func tryMongoInit() error {
-    var err error
-
-    log.Print("Connecting to MongoDB... ")
-    err = mongo.InitMongo(opts.MongoHost, opts.MongoPort, opts.MongoHost)
-    return err
+type config struct {
+	Port     int
+	MongoURL string
 }
 
 func main() {
-	flag.StringVar(&opts.HTTPHost, "a", httpHost, "HTTP server address.")
-	flag.StringVar(&opts.HTTPHost, "host", httpHost, "HTTP server address.")
-	flag.StringVar(&opts.HTTPPort, "p", httpPort, "HTTP server port.")
-	flag.StringVar(&opts.HTTPPort, "port", httpPort, "HTTP server port.")
-	flag.StringVar(&opts.MongoHost, "m", mongoHost, "MongoDB address.")
-	flag.StringVar(&opts.MongoHost, "mhost", mongoHost, "MongoDB address.")
-	flag.StringVar(&opts.MongoPort, "q", mongoPort, "MongoDB port.")
-	flag.StringVar(&opts.MongoPort, "mport", mongoPort, "MongoDB port.")
-	flag.BoolVar(&opts.Version, "version", false, "Print version information.")
-	flag.BoolVar(&opts.Version, "v", false, "Print version information.")
-	flag.BoolVar(&opts.Help, "h", false, "Show help.")
-	flag.BoolVar(&opts.Help, "help", false, "Show help.")
+	cfg := loadConfig()
 
-	flag.Parse()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
 
-	if opts.Version {
-		tw := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
-		fmt.Fprintf(tw, "Build Tag:    %s\n", Tag)
-		fmt.Fprintf(tw, "Build Time:   %s\n", Time)
-		fmt.Fprintf(tw, "Platform:     %s\n", Platform)
-		fmt.Fprintf(tw, "Go Version:   %s\n", GoVersion)
-		fmt.Fprintf(tw, "Build SHA-1:  %s\n", Revision)
-		tw.Flush()
-		os.Exit(0)
+	ms := connectToMongo(cfg, logger)
+	defer ms.Close()
+
+	api.SetMongoSession(ms)
+
+	errs := make(chan error, 2)
+
+	go func() {
+		p := fmt.Sprintf(":%d", cfg.Port)
+		logger.Info("Staring Export Client", zap.String("url", p))
+		errs <- http.ListenAndServe(p, api.HTTPServer())
+	}()
+
+	go func() {
+		c := make(chan os.Signal)
+		signal.Notify(c, syscall.SIGINT)
+		errs <- fmt.Errorf("%s", <-c)
+	}()
+
+	c := <-errs
+	logger.Info("terminated", zap.String("error", c.Error()))
+}
+
+func loadConfig() *config {
+	return &config{
+		Port:     port,
+		MongoURL: env(envMongoURL, defMongoURL),
+	}
+}
+
+func env(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
 	}
 
-	if opts.Help {
-		fmt.Printf("%s\n", help)
-		os.Exit(0)
+	return value
+}
+
+func connectToMongo(cfg *config, logger *zap.Logger) *mgo.Session {
+	ms, err := mgo.Dial(cfg.MongoURL)
+	if err != nil {
+		logger.Error("Failed to connect to Mongo.", zap.Error(err))
 	}
 
-	// Connect to MongoDB
-	if err := backoff.Retry(tryMongoInit, backoff.NewExponentialBackOff()); err != nil {
-		log.Fatalf("MongoDB: Can't connect: %v\n", err)
-	} else {
-		log.Println("MongoDB: Connected")
-	}
+	ms.SetMode(mgo.Monotonic, true)
 
-	// Serve HTTP
-	HTTPHost := fmt.Sprintf("%s:%s", opts.HTTPHost, opts.HTTPPort)
-	http.ListenAndServe(HTTPHost, api.HTTPServer())
+	return ms
 }
