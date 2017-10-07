@@ -15,7 +15,7 @@ func HTTPServer() http.Handler {
 
 	// Registration
 	//mux.Get("/api/v1/registration/reference/:type", http.HandlerFunc(getRefListHandler))
-	//mux.Get("/api/v1/registration", http.HandlerFunc(getAllRegHandler))
+	mux.Get("/api/v1/registration", http.HandlerFunc(getAllReg))
 	//mux.Get("/api/v1/registration/name/:name", http.HandlerFunc(getRegByNameHandler))
 	//mux.Post("/api/v1/registration", http.HandlerFunc(addRegHandler))
 	//mux.Put("/api/v1/registration", http.HandlerFunc(updateRegHandler))

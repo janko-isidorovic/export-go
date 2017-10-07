@@ -16,6 +16,7 @@ import (
 	"syscall"
 
 	"github.com/drasko/edgex-exportclient/api"
+	"github.com/drasko/edgex-exportclient/mongo"
 
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
@@ -38,10 +39,13 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
+	api.InitLogger(logger)
+
 	ms := connectToMongo(cfg, logger)
 	defer ms.Close()
 
-	api.SetMongoSession(ms)
+	repo := mongo.NewMongoRepository(ms)
+	api.InitMongoRepository(repo)
 
 	errs := make(chan error, 2)
 

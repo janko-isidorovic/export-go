@@ -1,11 +1,10 @@
 package api
 
-import (
-	"gopkg.in/mgo.v2"
-)
+import "github.com/drasko/edgex-exportclient/mongo"
 
-var ms *mgo.Session
+var repo *mongo.MongoRepository
 
-func SetMongoSession(s *mgo.Session) {
-	ms = s
+func InitMongoRepository(r *mongo.MongoRepository) {
+	repo = r
+	return
 }
