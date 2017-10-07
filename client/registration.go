@@ -1,10 +1,10 @@
-package api
+package client
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/drasko/edgex-exportclient/mongo"
+	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
 )
 

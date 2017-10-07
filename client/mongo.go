@@ -1,6 +1,6 @@
-package api
+package client
 
-import "github.com/drasko/edgex-exportclient/mongo"
+import "github.com/drasko/edgex-export/mongo"
 
 var repo *mongo.MongoRepository
 
