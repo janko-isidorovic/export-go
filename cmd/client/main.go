@@ -15,8 +15,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/drasko/edgex-exportclient/api"
-	"github.com/drasko/edgex-exportclient/mongo"
+	"github.com/drasko/edgex-export/client"
+	"github.com/drasko/edgex-export/mongo"
 
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
@@ -39,20 +39,20 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	api.InitLogger(logger)
+	client.InitLogger(logger)
 
 	ms := connectToMongo(cfg, logger)
 	defer ms.Close()
 
 	repo := mongo.NewMongoRepository(ms)
-	api.InitMongoRepository(repo)
+	client.InitMongoRepository(repo)
 
 	errs := make(chan error, 2)
 
 	go func() {
 		p := fmt.Sprintf(":%d", cfg.Port)
 		logger.Info("Staring Export Client", zap.String("url", p))
-		errs <- http.ListenAndServe(p, api.HTTPServer())
+		errs <- http.ListenAndServe(p, client.HTTPServer())
 	}()
 
 	go func() {
