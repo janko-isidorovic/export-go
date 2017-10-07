@@ -10,6 +10,9 @@ import (
 
 type Registration struct{}
 
+func getRegList(w http.ResponseWriter, r *http.Request) {
+}
+
 func getAllReg(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -28,4 +31,19 @@ func getAllReg(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(results)
+}
+
+func getRegByName(w http.ResponseWriter, r *http.Request) {
+}
+
+func addReg(w http.ResponseWriter, r *http.Request) {
+}
+
+func updateReg(w http.ResponseWriter, r *http.Request) {
+}
+
+func delRegByID(w http.ResponseWriter, r *http.Request) {
+}
+
+func delRegByName(w http.ResponseWriter, r *http.Request) {
 }
