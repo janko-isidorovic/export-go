@@ -9,7 +9,7 @@ into one single repo.
 
 Repo contains two microservices, `export-client` and `export-distro`
 
-# Install and Deploy
+## Install and Deploy
 
 Currently only `export-client` is functional.
 
@@ -21,5 +21,5 @@ cd $GOPATH/src/github.com/drasko/edgex-export/cmd/client
 go run main.go
 ```
 
-# License
+## License
 [Apache-2.0](LICENSE)
