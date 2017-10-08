@@ -22,6 +22,9 @@ go get github.com/drasko/edgex-export
 cd $GOPATH/src/github.com/drasko/edgex-export/cmd/client
 go run main.go
 ```
+## Community
+- Chat: https://chat.edgexfoundry.org/home
+- Mainling lists: https://lists.edgexfoundry.org/mailman/listinfo
 
 ## License
 [Apache-2.0](LICENSE)
