@@ -1,4 +1,6 @@
 # EdgeX Foundry Export Services
+[![Go Report Card](https://goreportcard.com/badge/github.com/drasko/edgex-export)](https://goreportcard.com/report/github.com/drasko/edgex-export)
+[![license](https://img.shields.io/badge/license-Apache%20v2.0-blue.svg)](LICENSE)
 
 Go implementation of EdgeX Export services.
 
