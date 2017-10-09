@@ -13,7 +13,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/drasko/edgex-export/client"
 	"github.com/drasko/edgex-export/mongo"
@@ -23,14 +25,26 @@ import (
 )
 
 const (
-	port        int    = 7070
-	defMongoURL string = "mongodb://0.0.0.0:27017"
+	port        int	   = 7070
+	defMongoURL string = "localhost"
+	defMongoUsername string = "core"
+	defMongoPassword string = "password"
+	defMongoDatabase string = "coredata"
+	defMongoPort int = 27017
+	defMongoConnectTimeout int = 120000
+	defMongoSocketTimeout int = 60000
 	envMongoURL string = "EXPORT_CLIENT_MONGO_URL"
 )
 
 type config struct {
 	Port     int
 	MongoURL string
+	MongoUser string
+	MongoPass string
+	MongoDatabase string
+	MongoPort int
+	MongoConnectTimeout int
+	MongoSocketTimeout int
 }
 
 func main() {
@@ -69,6 +83,12 @@ func loadConfig() *config {
 	return &config{
 		Port:     port,
 		MongoURL: env(envMongoURL, defMongoURL),
+		MongoUser: defMongoUsername,
+		MongoPass: defMongoPassword,
+		MongoDatabase: defMongoDatabase,
+		MongoPort: defMongoPort,
+		MongoConnectTimeout: defMongoConnectTimeout,
+		MongoSocketTimeout: defMongoSocketTimeout,
 	}
 }
 
@@ -82,10 +102,18 @@ func env(key, fallback string) string {
 }
 
 func connectToMongo(cfg *config, logger *zap.Logger) *mgo.Session {
-	ms, err := mgo.Dial(cfg.MongoURL)
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs : []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
+		Timeout : time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
+		Database : cfg.MongoDatabase,
+		Username : cfg.MongoUser,
+		Password : cfg.MongoPass,
+	}
+	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
 		logger.Error("Failed to connect to Mongo.", zap.Error(err))
 	}
+	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
 
 	ms.SetMode(mgo.Monotonic, true)
 
