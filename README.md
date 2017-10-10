@@ -6,7 +6,7 @@ Go implementation of EdgeX Export services.
 
 [export-client](https://github.com/edgexfoundry/export-client),
 [export-distro](https://github.com/edgexfoundry/export-distro),
-[export-distro](https://github.com/edgexfoundry/export-distro) and
+[export-domain](https://github.com/edgexfoundry/export-domain) and
 [core-domain](https://github.com/edgexfoundry/core-domain) have been merged
 into one single repo.
 
