@@ -9,28 +9,30 @@ const (
 
 // Data format types
 const (
-	FormatJson = iota
-	FormatXml
+	FormatJSON = iota
+	FormatXML
 	FormatSerialized
-	FormatIoTCoreJson
-	FormatAzureJson
-	FormatCsv
+	FormatIoTCoreJSON
+	FormatAzureJSON
+	FormatCSV
 )
 
 // Export destination types
 const (
-	DestMqtt = iota
-	DestZmqt
-	DestIoTCoreMqtt
-	DestAzureMqtt
+	DestMQTT = iota
+	DestZMQ
+	DestIotCoreMQTT
+	DestAzureMQTT
 	DestRest
 )
 
-type ExportRegistration struct {
+// Registration - Defines the registration details
+// on the part of north side export clients
+type Registration struct {
 	Name        string
 	Addr        Addressable
 	Format      int
-	Filter      ExportFilter
+	Filter      Filter
 	Encryption  EncryptionDetails
 	Compression int
 	Enable      bool
