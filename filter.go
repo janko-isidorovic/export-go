@@ -1,6 +1,7 @@
 package export
 
-type ExportFilter struct {
+// Filter - Specifies the client filters on reading data
+type Filter struct {
 	DeviceIDs          []string
 	ValueDescriptorIDs []string
 }
