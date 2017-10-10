@@ -20,7 +20,7 @@ const (
 
 // Addressable - address for reaching the service
 type Addressable struct {
-	Name       string
+   Name       string
    Method     int
    Protocol   int
    Address    string

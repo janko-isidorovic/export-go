@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
 )
 
-type Registration struct{}
+func getRegByID(w http.ResponseWriter, r *http.Request) {
+}
 
 func getRegList(w http.ResponseWriter, r *http.Request) {
 }
@@ -21,7 +23,7 @@ func getAllReg(w http.ResponseWriter, r *http.Request) {
 
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
 
-	results := []Registration{}
+	results := []export.Registration{}
 	err := c.Find(nil).All(&results)
 	if err != nil {
 		logger.Error("Failed to query", zap.Error(err))

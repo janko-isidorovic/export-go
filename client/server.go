@@ -14,6 +14,7 @@ func HTTPServer() http.Handler {
 	mux.Get("/status", http.HandlerFunc(getStatus))
 
 	// Registration
+	mux.Get("/api/v1/registration/:id", http.HandlerFunc(getRegByID))
 	mux.Get("/api/v1/registration/reference/:type", http.HandlerFunc(getRegList))
 	mux.Get("/api/v1/registration", http.HandlerFunc(getAllReg))
 	mux.Get("/api/v1/registration/name/:name", http.HandlerFunc(getRegByName))
