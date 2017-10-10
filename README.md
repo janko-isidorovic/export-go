@@ -5,10 +5,11 @@
 Go implementation of EdgeX Export services.
 
 [export-client](https://github.com/edgexfoundry/export-client),
-[export-distro](https://github.com/edgexfoundry/export-distro),
-[export-domain](https://github.com/edgexfoundry/export-domain) and
-[core-domain](https://github.com/edgexfoundry/core-domain) have been merged
-into one single repo.
+[export-distro](https://github.com/edgexfoundry/export-distro) and
+[export-domain](https://github.com/edgexfoundry/export-domain) have been merged
+into one single repo. Additionaly, some classes from
+[core-domain](https://github.com/edgexfoundry/core-domain) have been duplicated
+into this repo (needed for linking and data isolation of microservices).
 
 Repo contains two microservices, `export-client` and `export-distro`.
 
