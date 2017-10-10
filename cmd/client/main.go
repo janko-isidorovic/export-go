@@ -26,9 +26,9 @@ import (
 
 const (
 	port                   int    = 7070
-	defMongoURL            string = "localhost"
-	defMongoUsername       string = "core"
-	defMongoPassword       string = "password"
+	defMongoURL            string = "0.0.0.0"
+	defMongoUsername       string = ""
+	defMongoPassword       string = ""
 	defMongoDatabase       string = "coredata"
 	defMongoPort           int    = 27017
 	defMongoConnectTimeout int    = 120000
