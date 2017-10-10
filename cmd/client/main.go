@@ -25,26 +25,26 @@ import (
 )
 
 const (
-	port        int	   = 7070
-	defMongoURL string = "localhost"
-	defMongoUsername string = "core"
-	defMongoPassword string = "password"
-	defMongoDatabase string = "coredata"
-	defMongoPort int = 27017
-	defMongoConnectTimeout int = 120000
-	defMongoSocketTimeout int = 60000
-	envMongoURL string = "EXPORT_CLIENT_MONGO_URL"
+	port                   int    = 7070
+	defMongoURL            string = "localhost"
+	defMongoUsername       string = "core"
+	defMongoPassword       string = "password"
+	defMongoDatabase       string = "coredata"
+	defMongoPort           int    = 27017
+	defMongoConnectTimeout int    = 120000
+	defMongoSocketTimeout  int    = 60000
+	envMongoURL            string = "EXPORT_CLIENT_MONGO_URL"
 )
 
 type config struct {
-	Port     int
-	MongoURL string
-	MongoUser string
-	MongoPass string
-	MongoDatabase string
-	MongoPort int
+	Port                int
+	MongoURL            string
+	MongoUser           string
+	MongoPass           string
+	MongoDatabase       string
+	MongoPort           int
 	MongoConnectTimeout int
-	MongoSocketTimeout int
+	MongoSocketTimeout  int
 }
 
 func main() {
@@ -55,7 +55,11 @@ func main() {
 
 	client.InitLogger(logger)
 
-	ms := connectToMongo(cfg, logger)
+	ms, err := connectToMongo(cfg)
+	if err != nil {
+		logger.Error("Failed to connect to Mongo.", zap.Error(err))
+		return
+	}
 	defer ms.Close()
 
 	repo := mongo.NewMongoRepository(ms)
@@ -81,14 +85,14 @@ func main() {
 
 func loadConfig() *config {
 	return &config{
-		Port:     port,
-		MongoURL: env(envMongoURL, defMongoURL),
-		MongoUser: defMongoUsername,
-		MongoPass: defMongoPassword,
-		MongoDatabase: defMongoDatabase,
-		MongoPort: defMongoPort,
+		Port:                port,
+		MongoURL:            env(envMongoURL, defMongoURL),
+		MongoUser:           defMongoUsername,
+		MongoPass:           defMongoPassword,
+		MongoDatabase:       defMongoDatabase,
+		MongoPort:           defMongoPort,
 		MongoConnectTimeout: defMongoConnectTimeout,
-		MongoSocketTimeout: defMongoSocketTimeout,
+		MongoSocketTimeout:  defMongoSocketTimeout,
 	}
 }
 
@@ -101,21 +105,22 @@ func env(key, fallback string) string {
 	return value
 }
 
-func connectToMongo(cfg *config, logger *zap.Logger) *mgo.Session {
+func connectToMongo(cfg *config) (*mgo.Session, error) {
 	mongoDBDialInfo := &mgo.DialInfo{
-		Addrs : []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
-		Timeout : time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
-		Database : cfg.MongoDatabase,
-		Username : cfg.MongoUser,
-		Password : cfg.MongoPass,
+		Addrs:    []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
+		Timeout:  time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
+		Database: cfg.MongoDatabase,
+		Username: cfg.MongoUser,
+		Password: cfg.MongoPass,
 	}
+
 	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
-		logger.Error("Failed to connect to Mongo.", zap.Error(err))
+		return nil, err
 	}
-	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
 
+	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
 	ms.SetMode(mgo.Monotonic, true)
 
-	return ms
+	return ms, nil
 }
