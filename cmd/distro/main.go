@@ -15,7 +15,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/drasko/edgex-export/client"
+	"github.com/drasko/edgex-export/distro"
 	"github.com/drasko/edgex-export/mongo"
 
 	"go.uber.org/zap"
@@ -23,9 +23,9 @@ import (
 )
 
 const (
-	port        int    = 7070
+	port        int    = 48070
 	defMongoURL string = "mongodb://0.0.0.0:27017"
-	envMongoURL string = "EXPORT_CLIENT_MONGO_URL"
+	envMongoURL string = "EXPORT_DISTRO_MONGO_URL"
 )
 
 type config struct {
@@ -39,20 +39,20 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	client.InitLogger(logger)
+	distro.InitLogger(logger)
 
 	ms := connectToMongo(cfg, logger)
 	defer ms.Close()
 
 	repo := mongo.NewMongoRepository(ms)
-	client.InitMongoRepository(repo)
+	distro.InitMongoRepository(repo)
 
 	errs := make(chan error, 2)
 
 	go func() {
 		p := fmt.Sprintf(":%d", cfg.Port)
-		logger.Info("Staring Export Client", zap.String("url", p))
-		errs <- http.ListenAndServe(p, client.HTTPServer())
+		logger.Info("Staring Export Distro", zap.String("url", p))
+		errs <- http.ListenAndServe(p, distro.HTTPServer())
 	}()
 
 	go func() {
