@@ -22,3 +22,5 @@ tags
 
 # Binary
 mainflux-http-sender
+cmd/client/client
+cmd/distro/distro
