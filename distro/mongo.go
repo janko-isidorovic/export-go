@@ -1,4 +1,4 @@
-package client
+package distro
 
 import "github.com/drasko/edgex-export/mongo"
 
