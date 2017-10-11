@@ -29,12 +29,16 @@ const (
 // Registration - Defines the registration details
 // on the part of north side export clients
 type Registration struct {
-	Name        string
-	Addr        Addressable
-	Format      int
-	Filter      Filter
-	Encryption  EncryptionDetails
-	Compression int
-	Enable      bool
-	Destination int
+	ID          string            `json:"id,omitempty"`
+	Created     int64             `json:"created,omitempty"`
+	Modified    int64             `json:"modified,omitempty"`
+	Origin      int64             `json:"origin,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Addr        Addressable       `json:"addr,omitempty"`
+	Format      int               `json:"format,omitempty"`
+	Filter      Filter            `json:"filter,omitempty"`
+	Encryption  EncryptionDetails `json:"encryption,omitempty"`
+	Compression int               `json:"compression,omitempty"`
+	Enable      bool              `json:"enable,omitempty"`
+	Destination int               `json:"destination,omitempty"`
 }
