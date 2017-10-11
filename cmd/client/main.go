@@ -69,7 +69,7 @@ func main() {
 
 	go func() {
 		p := fmt.Sprintf(":%d", cfg.Port)
-		logger.Info("Staring Export Client", zap.String("url", p))
+		logger.Info("Starting Export Client", zap.String("url", p))
 		errs <- http.ListenAndServe(p, client.HTTPServer())
 	}()
 

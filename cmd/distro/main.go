@@ -51,7 +51,7 @@ func main() {
 
 	go func() {
 		p := fmt.Sprintf(":%d", cfg.Port)
-		logger.Info("Staring Export Distro", zap.String("url", p))
+		logger.Info("Starting Export Distro", zap.String("url", p))
 		errs <- http.ListenAndServe(p, distro.HTTPServer())
 	}()
 
