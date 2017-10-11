@@ -20,17 +20,16 @@ func getRegByID(w http.ResponseWriter, r *http.Request) {
 
 	s := repo.Session.Copy()
 	defer s.Close()
-
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
-	result := export.Registration{}
 
-	if err := c.Find(bson.M{"id": id}).One(&result); err != nil {
+	reg := export.Registration{}
+	if err := c.Find(bson.M{"id": id}).One(&reg); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
 	}
 
-	res, err := json.Marshal(result)
+	res, err := json.Marshal(reg)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
@@ -49,19 +48,25 @@ func getAllReg(w http.ResponseWriter, r *http.Request) {
 
 	s := repo.Session.Copy()
 	defer s.Close()
-
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
 
-	results := []export.Registration{}
-	err := c.Find(nil).All(&results)
-	if err != nil {
+	reg := []export.Registration{}
+	if err := c.Find(nil).All(&reg); err != nil {
 		logger.Error("Failed to query", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
+		return
+	}
+
+	res, err := json.Marshal(reg);
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(results)
+	io.WriteString(w, string(res))
 }
 
 func getRegByName(w http.ResponseWriter, r *http.Request) {
@@ -71,17 +76,16 @@ func getRegByName(w http.ResponseWriter, r *http.Request) {
 
 	s := repo.Session.Copy()
 	defer s.Close()
-
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
-	result := export.Registration{}
 
-	if err := c.Find(bson.M{"name": name}).One(&result); err != nil {
+	reg := export.Registration{}
+	if err := c.Find(bson.M{"name": name}).One(&reg); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
 	}
 
-	res, err := json.Marshal(result)
+	res, err := json.Marshal(reg)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
@@ -96,6 +100,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, err.Error())
 		return
 	}
 
@@ -110,14 +115,14 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 	defer s.Close()
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
 
-	count, _ := c.Find(bson.M{"name": reg.Name}).Count()
-	if count != 0 {
+	if count, _ := c.Find(bson.M{"name": reg.Name}).Count(); count != 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := c.Insert(reg); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
 		return
 	}
 
@@ -128,6 +133,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, err.Error())
 		return
 	}
 
