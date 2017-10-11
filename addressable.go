@@ -4,7 +4,7 @@ package export
 const (
    ProtoHTTP = iota
    ProtoTCP
-   ProtolMAC
+   ProtoMAC
    ProtoZMQ
    ProtoOther
 )
