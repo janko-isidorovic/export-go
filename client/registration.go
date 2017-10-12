@@ -45,6 +45,31 @@ func getRegByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRegList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	t := bone.GetValue(r, "type")
+
+   var l string
+
+	switch t {
+		case "algorithms":
+			l = `["None","Aes"]`
+		case "compressions":
+			l = `["None","Gzip","Zip"]`
+		case "formats":
+			l = `["JSON","XML","Serialized","IotCoreJSON","AzureJSON","CSV"]`
+		case "destinations":
+			l = `["DestMQTT", "TeDestZMQller", "DestIotCoreMQTT,
+			"DestAzureMQTT", "DestRest"]`
+		default :
+			logger.Error("Unknown type: " + t);
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, "Unknown type: " + t)
+			return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, l)
 }
 
 func getAllReg(w http.ResponseWriter, r *http.Request) {
