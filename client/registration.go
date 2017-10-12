@@ -13,8 +13,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var logMsg = "Failed to query"
-
 func getRegByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -26,7 +24,7 @@ func getRegByID(w http.ResponseWriter, r *http.Request) {
 
 	reg := export.Registration{}
 	if err := c.Find(bson.M{"id": id}).One(&reg); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query by id", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -34,7 +32,7 @@ func getRegByID(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(reg)
 	if err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query by id", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -81,7 +79,7 @@ func getAllReg(w http.ResponseWriter, r *http.Request) {
 
 	reg := []export.Registration{}
 	if err := c.Find(nil).All(&reg); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query all registrations", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -89,7 +87,7 @@ func getAllReg(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(reg);
 	if err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query all registrations", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -110,7 +108,7 @@ func getRegByName(w http.ResponseWriter, r *http.Request) {
 
 	reg := export.Registration{}
 	if err := c.Find(bson.M{"name": name}).One(&reg); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query by name", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -118,7 +116,7 @@ func getRegByName(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(reg)
 	if err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query by name", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -131,7 +129,7 @@ func getRegByName(w http.ResponseWriter, r *http.Request) {
 func addReg(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query add registration", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, err.Error())
 		return
@@ -139,7 +137,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 
 	reg := export.Registration{}
 	if err := json.Unmarshal(data, &reg); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query add registration", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, err.Error())
 		return
@@ -151,19 +149,19 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 
 	count, err := c.Find(bson.M{"name": reg.Name}).Count();
 	if  err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query add registration", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
 	}
 	if  count != 0 {
-		logger.Error(logMsg, zap.String("Username already taken", reg.Name))
+		logger.Error("Username already taken: " + reg.Name)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := c.Insert(reg); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query add registration", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -175,7 +173,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 func updateReg(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query update registration", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, err.Error())
 		return
@@ -183,7 +181,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 
 	var body map[string]interface{}
 	if err := json.Unmarshal(data, &body); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query update registration", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 	}
@@ -197,7 +195,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 	update := bson.M{"$set": body}
 
 	if err := c.Update(query, update); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query update registration", zap.Error(err))
 		w.WriteHeader(http.StatusNotFound)
 		io.WriteString(w, err.Error())
 		return
@@ -214,7 +212,7 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
 
 	if err := c.Remove(bson.M{"id": id}); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query by id", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -231,7 +229,7 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 	c := s.DB(mongo.DbName).C(mongo.CollectionName)
 
 	if err := c.Remove(bson.M{"name": name}); err != nil {
-		logger.Error(logMsg, zap.Error(err))
+		logger.Error("Failed to query by name", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
