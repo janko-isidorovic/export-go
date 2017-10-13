@@ -21,8 +21,9 @@ To fetch the code and start the microservice execute:
 
 ```
 go get github.com/drasko/edgex-export
-cd $GOPATH/src/github.com/drasko/edgex-export/cmd/client
-go run main.go
+cd $GOPATH/src/github.com/drasko/edgex-export
+glide install
+go run cmd/client/main.go
 ```
 ## Community
 - Chat: https://chat.edgexfoundry.org/home
