@@ -34,10 +34,8 @@ type config struct {
 	MongoURL string
 }
 
-var registrations []export.Registration
-
 type distroFormater interface {
-	Format( /*event*/ ) string
+	Format( /*event*/ ) []byte
 }
 
 type distroTransformer interface {
@@ -52,6 +50,17 @@ type registrationInfo struct {
 	sender       distro.Sender
 }
 
+var registrations []registrationInfo
+
+type dummyFormat struct {
+}
+
+func (dummy dummyFormat) Format( /*event*/ ) []byte {
+	return []byte("dummy")
+}
+
+var dummy dummyFormat
+
 func (reg registrationInfo) update(newReg export.Registration) bool {
 	reg.registration = newReg
 
@@ -59,6 +68,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	switch newReg.Format {
 	case export.FormatJSON:
 		// reg.format = distro.NewJsonFormat()
+		reg.format = dummy
 	case export.FormatXML:
 		// reg.format = distro.NewXmlFormat()
 	case export.FormatSerialized:
@@ -88,7 +98,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	reg.sender = nil
 	switch newReg.Destination {
 	case export.DestMQTT:
-		reg.sender = distro.NewMqttSender("broker", "user", "password")
+		reg.sender = distro.NewMqttSender("tcp://127.0.0.1:1883", "", "")
 	case export.DestZMQ:
 		fmt.Print("Destination ZMQ is not supported")
 		//reg.sender = distro.NewHttpSender("TODO URL")
@@ -97,7 +107,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	case export.DestAzureMQTT:
 		//reg.sender = distro.NewAzureSender("TODO URL")
 	case export.DestRest:
-		reg.sender = distro.NewHttpSender("TODO URL")
+		reg.sender = distro.NewHttpSender("http://127.0.0.1")
 	default:
 		fmt.Println("Destination not supported: ", newReg.Destination)
 	}
@@ -106,6 +116,29 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 		return false
 	}
 	return true
+}
+
+func (reg registrationInfo) processEvent( /*, event*/ ) {
+	// Valid Event Filter, needed?
+
+	// Device filtering TODO
+
+	// Value filtering TODO
+
+	//formated := reg.format.Format( /* event*/ )
+	formated := []byte("just an example")
+
+	compressed := formated
+	if reg.compression != nil {
+		compressed = reg.compression.Transform(formated)
+	}
+
+	encrypted := compressed
+	if reg.encrypt != nil {
+		encrypted = reg.encrypt.Transform(compressed)
+	}
+	encrypted = nil
+	reg.sender.Send(string(encrypted))
 }
 
 func sample() {
@@ -121,7 +154,14 @@ func sample() {
 	sourceReg.Destination = export.DestMQTT
 
 	var reg registrationInfo
-	reg.update(sourceReg)
+	if reg.update(sourceReg) {
+		registrations = append(registrations, reg)
+	}
+
+	for _, r := range registrations {
+		fmt.Println("a registration: ", r.registration.ID)
+
+	}
 }
 
 // {
