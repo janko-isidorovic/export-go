@@ -103,7 +103,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	reg.sender = nil
 	switch newReg.Destination {
 	case export.DestMQTT:
-		reg.sender = distro.NewMqttSender("192.168.24.25", "user", "password")
+		reg.sender = distro.NewMqttSender("192.168.24.25", "chencho", "ch")
 	case export.DestZMQ:
 		fmt.Print("Destination ZMQ is not supported")
 		//reg.sender = distro.NewHttpSender("TODO URL")
@@ -123,7 +123,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	return true
 }
 
-func getConfig(repo *mongo.MongoRepository) []export.Registration {
+func getRegistrations(repo *mongo.MongoRepository) []export.Registration {
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -146,7 +146,7 @@ func getConfig(repo *mongo.MongoRepository) []export.Registration {
 }
 
 func sample(repo *mongo.MongoRepository) {
-	sourceReg := getConfig(repo)
+	sourceReg := getRegistrations(repo)
 	/*sourceReg.ID = "1"
 	sourceReg.Name = "test export"
 	// sourceReg.Addr
