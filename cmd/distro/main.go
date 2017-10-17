@@ -51,73 +51,6 @@ type config struct {
 
 var registrations []export.Registration
 
-type distroFormat interface {
-	Format( /*event*/ ) string
-}
-
-type distroTransformer interface {
-	Transform(data []byte) []byte
-}
-
-// type distroCompression interface {
-// 	Compress(data []byte) []byte
-// }
-
-// type distroEncryption interface {
-// 	Encrypt(data []byte) []byte
-// }
-
-type registrationInfo struct {
-	registration export.Registration
-	format       distroFormat
-	compression  distroTransformer
-	encrypt      distroTransformer
-	sender       distro.Sender
-}
-
-func (reg registrationInfo) update(newReg export.Registration) {
-	reg.registration = newReg
-	switch newReg.Format {
-	case export.FormatJSON:
-	case export.FormatXML:
-	case export.FormatSerialized:
-	case export.FormatIoTCoreJSON:
-	case export.FormatAzureJSON:
-	case export.FormatCSV:
-	default:
-	}
-	switch newReg.Compression {
-	case export.CompNone:
-	case export.CompGzip:
-	case export.CompZip:
-	default:
-	}
-	// switch newRreg.compression {
-	// case export.CompNone:
-	// case export.CompGzip:
-	// case export.CompZip:
-	// default:
-	// }
-}
-
-func sample() {
-	var sourceReg export.Registration
-	sourceReg.ID = "1"
-	sourceReg.Name = "test export"
-	// sourceReg.Addr
-	sourceReg.Format = export.FormatJSON
-	//sourceReg.Filter
-	sourceReg.Compression = export.CompNone
-	sourceReg.Encryption.Algo = export.EncNone
-	sourceReg.Enable = true
-	sourceReg.Destination = "MQTT_TOPIC"
-
-	var reg registrationInfo
-	reg.update(sourceReg)
-}
-
-var registrations []export.Registration
-
 type distroFormater interface {
 	Format( /*event*/ ) string
 }
@@ -170,7 +103,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	reg.sender = nil
 	switch newReg.Destination {
 	case export.DestMQTT:
-		reg.sender = distro.NewMqttSender("broker", "user", "password")
+		reg.sender = distro.NewMqttSender("192.168.24.25", "user", "password")
 	case export.DestZMQ:
 		fmt.Print("Destination ZMQ is not supported")
 		//reg.sender = distro.NewHttpSender("TODO URL")
@@ -179,7 +112,7 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	case export.DestAzureMQTT:
 		//reg.sender = distro.NewAzureSender("TODO URL")
 	case export.DestRest:
-		reg.sender = distro.NewHttpSender("TODO URL")
+		reg.sender = distro.NewHttpSender("192.168.24.25")
 	default:
 		fmt.Println("Destination not supported: ", newReg.Destination)
 	}
@@ -190,9 +123,31 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	return true
 }
 
-func sample() {
-	var sourceReg export.Registration
-	sourceReg.ID = "1"
+func getConfig(repo *mongo.MongoRepository) []export.Registration {
+
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	s := repo.Session.Copy()
+	defer s.Close()
+
+	c := s.DB(mongo.DbName).C(mongo.CollectionName)
+
+	results := []export.Registration{}
+	err := c.Find(nil).All(&results)
+	if err != nil {
+		logger.Error("Failed to query", zap.Error(err))
+		return nil
+	}
+
+	fmt.Println("Results All: ", results)
+
+	return results
+}
+
+func sample(repo *mongo.MongoRepository) {
+	sourceReg := getConfig(repo)
+	/*sourceReg.ID = "1"
 	sourceReg.Name = "test export"
 	// sourceReg.Addr
 	sourceReg.Format = export.FormatJSON
@@ -201,9 +156,10 @@ func sample() {
 	sourceReg.Encryption.Algo = export.EncNone
 	sourceReg.Enable = true
 	sourceReg.Destination = export.DestMQTT
-
+	*/
+	fmt.Println("----------------- ", sourceReg)
 	var reg registrationInfo
-	reg.update(sourceReg)
+	reg.update(sourceReg[0])
 }
 
 // {
@@ -265,7 +221,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	sample()
+	sample(repo)
 
 	c := <-errs
 	logger.Info("terminated", zap.String("error", c.Error()))
