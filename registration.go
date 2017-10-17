@@ -29,7 +29,7 @@ const (
 // Registration - Defines the registration details
 // on the part of north side export clients
 type Registration struct {
-	ID          string            `json:"id,omitempty"`
+	ID          string            `json:"_id,omitempty"`
 	Created     int64             `json:"created,omitempty"`
 	Modified    int64             `json:"modified,omitempty"`
 	Origin      int64             `json:"origin,omitempty"`

@@ -13,7 +13,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/distro"
@@ -24,14 +26,94 @@ import (
 )
 
 const (
-	port        int    = 48070
-	defMongoURL string = "mongodb://0.0.0.0:27017"
+	port                   int    = 48070
+	defMongoURL            string = "mongodb://0.0.0.0:27017"
+	defMongoUsername       string = "core"
+	defMongoPassword       string = "password"
+	defMongoDatabase       string = "coredata"
+	defMongoPort           int    = 27017
+	defMongoConnectTimeout int    = 120000
+	defMongoSocketTimeout  int    = 60000
+
 	envMongoURL string = "EXPORT_DISTRO_MONGO_URL"
 )
 
 type config struct {
-	Port     int
-	MongoURL string
+	Port                int
+	MongoURL            string
+	MongoUser           string
+	MongoPass           string
+	MongoDatabase       string
+	MongoPort           int
+	MongoConnectTimeout int
+	MongoSocketTimeout  int
+}
+
+var registrations []export.Registration
+
+type distroFormat interface {
+	Format( /*event*/ ) string
+}
+
+type distroTransformer interface {
+	Transform(data []byte) []byte
+}
+
+// type distroCompression interface {
+// 	Compress(data []byte) []byte
+// }
+
+// type distroEncryption interface {
+// 	Encrypt(data []byte) []byte
+// }
+
+type registrationInfo struct {
+	registration export.Registration
+	format       distroFormat
+	compression  distroTransformer
+	encrypt      distroTransformer
+	sender       distro.Sender
+}
+
+func (reg registrationInfo) update(newReg export.Registration) {
+	reg.registration = newReg
+	switch newReg.Format {
+	case export.FormatJSON:
+	case export.FormatXML:
+	case export.FormatSerialized:
+	case export.FormatIoTCoreJSON:
+	case export.FormatAzureJSON:
+	case export.FormatCSV:
+	default:
+	}
+	switch newReg.Compression {
+	case export.CompNone:
+	case export.CompGzip:
+	case export.CompZip:
+	default:
+	}
+	// switch newRreg.compression {
+	// case export.CompNone:
+	// case export.CompGzip:
+	// case export.CompZip:
+	// default:
+	// }
+}
+
+func sample() {
+	var sourceReg export.Registration
+	sourceReg.ID = "1"
+	sourceReg.Name = "test export"
+	// sourceReg.Addr
+	sourceReg.Format = export.FormatJSON
+	//sourceReg.Filter
+	sourceReg.Compression = export.CompNone
+	sourceReg.Encryption.Algo = export.EncNone
+	sourceReg.Enable = true
+	sourceReg.Destination = "MQTT_TOPIC"
+
+	var reg registrationInfo
+	reg.update(sourceReg)
 }
 
 var registrations []export.Registration
@@ -159,7 +241,11 @@ func main() {
 
 	distro.InitLogger(logger)
 
-	ms := connectToMongo(cfg, logger)
+	ms, err := connectToMongo(cfg)
+	if err != nil {
+		logger.Error("Failed to connect to Mongo.", zap.Error(err))
+		return
+	}
 	defer ms.Close()
 
 	repo := mongo.NewMongoRepository(ms)
@@ -187,8 +273,15 @@ func main() {
 
 func loadConfig() *config {
 	return &config{
-		Port:     port,
-		MongoURL: env(envMongoURL, defMongoURL),
+
+		Port:                port,
+		MongoURL:            env(envMongoURL, defMongoURL),
+		MongoUser:           defMongoUsername,
+		MongoPass:           defMongoPassword,
+		MongoDatabase:       defMongoDatabase,
+		MongoPort:           defMongoPort,
+		MongoConnectTimeout: defMongoConnectTimeout,
+		MongoSocketTimeout:  defMongoSocketTimeout,
 	}
 }
 
@@ -201,13 +294,25 @@ func env(key, fallback string) string {
 	return value
 }
 
-func connectToMongo(cfg *config, logger *zap.Logger) *mgo.Session {
-	ms, err := mgo.Dial(cfg.MongoURL)
-	if err != nil {
-		logger.Error("Failed to connect to Mongo.", zap.Error(err))
+func connectToMongo(cfg *config) (*mgo.Session, error) {
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
+		Timeout:  time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
+		Database: cfg.MongoDatabase,
+		Username: cfg.MongoUser,
+		Password: cfg.MongoPass,
 	}
 
+	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
+	if err != nil {
+		return nil, err
+	}
+	//logger, _ := zap.NewProduction()
+
+	//logger.Info("--", zap.String("url", mongoDBDialInfo.Addrs[0]))
+
+	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
 	ms.SetMode(mgo.Monotonic, true)
 
-	return ms
+	return ms, nil
 }
