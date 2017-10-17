@@ -34,7 +34,7 @@ type Registration struct {
 	Modified    int64             `json:"modified,omitempty"`
 	Origin      int64             `json:"origin,omitempty"`
 	Name        string            `json:"name,omitempty"`
-	Addr        Addressable       `json:"addressable,omitempty"`
+	Addressable Addressable       `json:"addressable,omitempty"`
 	Format      int               `json:"format,omitempty"`
 	Filter      Filter            `json:"filter,omitempty"`
 	Encryption  EncryptionDetails `json:"encryption,omitempty"`
