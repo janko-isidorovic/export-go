@@ -11,6 +11,7 @@ type mqttSender struct {
 	mqttClient MQTT.Client
 }
 
+// Change parameters to Addressable?
 func NewMqttSender(broker string, user string, password string) Sender {
 
 	opts := MQTT.NewClientOptions()

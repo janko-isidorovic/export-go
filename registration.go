@@ -40,5 +40,5 @@ type Registration struct {
 	Encryption  EncryptionDetails `json:"encryption,omitempty"`
 	Compression int               `json:"compression,omitempty"`
 	Enable      bool              `json:"enable,omitempty"`
-	Destination string            `json:"destination,omitempty"`
+	Destination int               `json:"destination,omitempty"`
 }

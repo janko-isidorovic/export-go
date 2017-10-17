@@ -36,7 +36,7 @@ type config struct {
 
 var registrations []export.Registration
 
-type distroFormat interface {
+type distroFormater interface {
 	Format( /*event*/ ) string
 }
 
@@ -44,45 +44,68 @@ type distroTransformer interface {
 	Transform(data []byte) []byte
 }
 
-// type distroCompression interface {
-// 	Compress(data []byte) []byte
-// }
-
-// type distroEncryption interface {
-// 	Encrypt(data []byte) []byte
-// }
-
 type registrationInfo struct {
 	registration export.Registration
-	format       distroFormat
+	format       distroFormater
 	compression  distroTransformer
 	encrypt      distroTransformer
 	sender       distro.Sender
 }
 
-func (reg registrationInfo) update(newReg export.Registration) {
+func (reg registrationInfo) update(newReg export.Registration) bool {
 	reg.registration = newReg
+
+	reg.format = nil
 	switch newReg.Format {
 	case export.FormatJSON:
+		// reg.format = distro.NewJsonFormat()
 	case export.FormatXML:
+		// reg.format = distro.NewXmlFormat()
 	case export.FormatSerialized:
+		// reg.format = distro.NewSerializedFormat()
 	case export.FormatIoTCoreJSON:
+		// reg.format = distro.NewIotCoreFormat()
 	case export.FormatAzureJSON:
+		// reg.format = distro.NewAzureFormat()
 	case export.FormatCSV:
+		// reg.format = distro.NewCsvFormat()
 	default:
+		fmt.Println("Format not supported: ", newReg.Compression)
 	}
+
+	reg.compression = nil
 	switch newReg.Compression {
 	case export.CompNone:
+		reg.compression = nil
 	case export.CompGzip:
+		// reg.compression = distro.NewGzipComppression()
 	case export.CompZip:
+		// reg.compression = distro.NewZipComppression()
 	default:
+		fmt.Println("Compression not supported: ", newReg.Compression)
 	}
-	// switch newRreg.compression {
-	// case export.CompNone:
-	// case export.CompGzip:
-	// case export.CompZip:
-	// default:
-	// }
+
+	reg.sender = nil
+	switch newReg.Destination {
+	case export.DestMQTT:
+		reg.sender = distro.NewMqttSender("broker", "user", "password")
+	case export.DestZMQ:
+		fmt.Print("Destination ZMQ is not supported")
+		//reg.sender = distro.NewHttpSender("TODO URL")
+	case export.DestIotCoreMQTT:
+		//reg.sender = distro.NewIotCoreSender("TODO URL")
+	case export.DestAzureMQTT:
+		//reg.sender = distro.NewAzureSender("TODO URL")
+	case export.DestRest:
+		reg.sender = distro.NewHttpSender("TODO URL")
+	default:
+		fmt.Println("Destination not supported: ", newReg.Destination)
+	}
+	if reg.format == nil || reg.sender == nil {
+		fmt.Println("Registration not supported")
+		return false
+	}
+	return true
 }
 
 func sample() {
@@ -95,7 +118,7 @@ func sample() {
 	sourceReg.Compression = export.CompNone
 	sourceReg.Encryption.Algo = export.EncNone
 	sourceReg.Enable = true
-	sourceReg.Destination = "MQTT_TOPIC"
+	sourceReg.Destination = export.DestMQTT
 
 	var reg registrationInfo
 	reg.update(sourceReg)

@@ -10,6 +10,7 @@ type httpSender struct {
 	url string
 }
 
+// Change parameter to Addressable?
 func NewHttpSender(url string) Sender {
 	var sender httpSender
 	sender.url = url
