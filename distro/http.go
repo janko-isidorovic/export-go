@@ -2,6 +2,7 @@ package distro
 
 import (
 	"fmt"
+	"github.com/drasko/edgex-export"
 	"log"
 	"net/http"
 )
@@ -11,9 +12,9 @@ type httpSender struct {
 }
 
 // Change parameter to Addressable?
-func NewHttpSender(url string) Sender {
+func NewHttpSender(addr export.Addressable) Sender {
 	var sender httpSender
-	sender.url = url
+	sender.url = addr.Address
 	return sender
 }
 

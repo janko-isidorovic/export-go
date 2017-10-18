@@ -150,9 +150,6 @@ func connectToMongo(cfg *config) (*mgo.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	//logger, _ := zap.NewProduction()
-
-	//logger.Info("--", zap.String("url", mongoDBDialInfo.Addrs[0]))
 
 	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
 	ms.SetMode(mgo.Monotonic, true)

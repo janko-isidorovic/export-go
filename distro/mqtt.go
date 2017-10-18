@@ -2,9 +2,9 @@ package distro
 
 import (
 	"fmt"
-	// "os"
-
+	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"strconv"
 )
 
 type mqttSender struct {
@@ -12,13 +12,14 @@ type mqttSender struct {
 }
 
 // Change parameters to Addressable?
-func NewMqttSender(broker string, user string, password string) Sender {
+func NewMqttSender(addr export.Addressable) Sender {
 
 	opts := MQTT.NewClientOptions()
-	opts.AddBroker(broker)
+	broker := []string{addr.Address + ":" + strconv.Itoa(addr.Port)}
+	opts.AddBroker(broker[0])
 	opts.SetClientID("edgex")
-	opts.SetUsername(user)
-	opts.SetPassword(password)
+	opts.SetUsername(addr.User)
+	opts.SetPassword(addr.Password)
 	// opts.SetCleanSession(cleansess)
 
 	var sender mqttSender

@@ -2,7 +2,6 @@ package distro
 
 import (
 	"fmt"
-
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 )
@@ -29,6 +28,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 		reg.format = dummy
 	case export.FormatXML:
 		// reg.format = distro.NewXmlFormat()
+		reg.format = dummy
 	case export.FormatSerialized:
 		// reg.format = distro.NewSerializedFormat()
 	case export.FormatIoTCoreJSON:
@@ -56,16 +56,16 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	reg.sender = nil
 	switch newReg.Destination {
 	case export.DestMQTT:
-		reg.sender = NewMqttSender("tcp://127.0.0.1:1883", "", "")
+		reg.sender = NewMqttSender(newReg.Addressable)
 	case export.DestZMQ:
 		fmt.Print("Destination ZMQ is not supported")
-		//reg.sender = distro.NewHttpSender("TODO URL")
+		//reg.sender = distro.NewZMQSender("TODO URL")
 	case export.DestIotCoreMQTT:
 		//reg.sender = distro.NewIotCoreSender("TODO URL")
 	case export.DestAzureMQTT:
 		//reg.sender = distro.NewAzureSender("TODO URL")
 	case export.DestRest:
-		reg.sender = NewHttpSender("http://127.0.0.1")
+		reg.sender = NewHttpSender(newReg.Addressable)
 	default:
 		fmt.Println("Destination not supported: ", newReg.Destination)
 	}
