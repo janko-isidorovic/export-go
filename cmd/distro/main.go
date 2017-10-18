@@ -13,7 +13,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/distro"
@@ -24,14 +26,27 @@ import (
 )
 
 const (
-	port        int    = 48070
-	defMongoURL string = "mongodb://0.0.0.0:27017"
+	port                   int    = 48070
+	defMongoURL            string = "0.0.0.0"
+	defMongoUsername       string = "core"
+	defMongoPassword       string = "password"
+	defMongoDatabase       string = "coredata"
+	defMongoPort           int    = 27017
+	defMongoConnectTimeout int    = 5000
+	defMongoSocketTimeout  int    = 60000
+
 	envMongoURL string = "EXPORT_DISTRO_MONGO_URL"
 )
 
 type config struct {
-	Port     int
-	MongoURL string
+	Port                int
+	MongoURL            string
+	MongoUser           string
+	MongoPass           string
+	MongoDatabase       string
+	MongoPort           int
+	MongoConnectTimeout int
+	MongoSocketTimeout  int
 }
 
 type distroFormater interface {
@@ -61,7 +76,7 @@ func (dummy dummyFormat) Format( /*event*/ ) []byte {
 
 var dummy dummyFormat
 
-func (reg registrationInfo) update(newReg export.Registration) bool {
+func (reg *registrationInfo) update(newReg export.Registration) bool {
 	reg.registration = newReg
 
 	reg.format = nil
@@ -118,6 +133,26 @@ func (reg registrationInfo) update(newReg export.Registration) bool {
 	return true
 }
 
+func getRegistrations(repo *mongo.MongoRepository) []export.Registration {
+
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	s := repo.Session.Copy()
+	defer s.Close()
+
+	c := s.DB(mongo.DbName).C(mongo.CollectionName)
+
+	results := []export.Registration{}
+	err := c.Find(nil).All(&results)
+	if err != nil {
+		logger.Error("Failed to query", zap.Error(err))
+		return nil
+	}
+
+	return results
+}
+
 func (reg registrationInfo) processEvent( /*, event*/ ) {
 	// Valid Event Filter, needed?
 
@@ -127,7 +162,6 @@ func (reg registrationInfo) processEvent( /*, event*/ ) {
 
 	//formated := reg.format.Format( /* event*/ )
 	formated := []byte("just an example")
-
 	compressed := formated
 	if reg.compression != nil {
 		compressed = reg.compression.Transform(formated)
@@ -137,30 +171,23 @@ func (reg registrationInfo) processEvent( /*, event*/ ) {
 	if reg.encrypt != nil {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
-	encrypted = nil
+
 	reg.sender.Send(string(encrypted))
 }
 
-func sample() {
-	var sourceReg export.Registration
-	sourceReg.ID = "1"
-	sourceReg.Name = "test export"
-	// sourceReg.Addr
-	sourceReg.Format = export.FormatJSON
-	//sourceReg.Filter
-	sourceReg.Compression = export.CompNone
-	sourceReg.Encryption.Algo = export.EncNone
-	sourceReg.Enable = true
-	sourceReg.Destination = export.DestMQTT
+func sample(repo *mongo.MongoRepository) {
+	sourceReg := getRegistrations(repo)
 
-	var reg registrationInfo
-	if reg.update(sourceReg) {
-		registrations = append(registrations, reg)
+	for i := range sourceReg {
+		var reg registrationInfo
+		if reg.update(sourceReg[i]) {
+			registrations = append(registrations, reg)
+		}
 	}
 
 	for _, r := range registrations {
-		fmt.Println("a registration: ", r.registration.ID)
-
+		fmt.Println("a registration: ", r)
+		r.processEvent()
 	}
 }
 
@@ -192,6 +219,7 @@ func sample() {
 // }
 
 func main() {
+	fmt.Println("Starting distro")
 	cfg := loadConfig()
 
 	logger, _ := zap.NewProduction()
@@ -199,7 +227,11 @@ func main() {
 
 	distro.InitLogger(logger)
 
-	ms := connectToMongo(cfg, logger)
+	ms, err := connectToMongo(cfg)
+	if err != nil {
+		logger.Error("Failed to connect to Mongo.", zap.Error(err))
+		return
+	}
 	defer ms.Close()
 
 	repo := mongo.NewMongoRepository(ms)
@@ -219,7 +251,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	sample()
+	sample(repo)
 
 	c := <-errs
 	logger.Info("terminated", zap.String("error", c.Error()))
@@ -227,8 +259,15 @@ func main() {
 
 func loadConfig() *config {
 	return &config{
-		Port:     port,
-		MongoURL: env(envMongoURL, defMongoURL),
+
+		Port:                port,
+		MongoURL:            env(envMongoURL, defMongoURL),
+		MongoUser:           defMongoUsername,
+		MongoPass:           defMongoPassword,
+		MongoDatabase:       defMongoDatabase,
+		MongoPort:           defMongoPort,
+		MongoConnectTimeout: defMongoConnectTimeout,
+		MongoSocketTimeout:  defMongoSocketTimeout,
 	}
 }
 
@@ -241,13 +280,25 @@ func env(key, fallback string) string {
 	return value
 }
 
-func connectToMongo(cfg *config, logger *zap.Logger) *mgo.Session {
-	ms, err := mgo.Dial(cfg.MongoURL)
-	if err != nil {
-		logger.Error("Failed to connect to Mongo.", zap.Error(err))
+func connectToMongo(cfg *config) (*mgo.Session, error) {
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
+		Timeout:  time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
+		Database: cfg.MongoDatabase,
+		Username: cfg.MongoUser,
+		Password: cfg.MongoPass,
 	}
 
+	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
+	if err != nil {
+		return nil, err
+	}
+	//logger, _ := zap.NewProduction()
+
+	//logger.Info("--", zap.String("url", mongoDBDialInfo.Addrs[0]))
+
+	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
 	ms.SetMode(mgo.Monotonic, true)
 
-	return ms
+	return ms, nil
 }

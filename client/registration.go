@@ -94,7 +94,7 @@ func getAllReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, string(res))
+	io.WriteString(w, string(res)) 
 }
 
 func getRegByName(w http.ResponseWriter, r *http.Request) {
