@@ -5,6 +5,8 @@ import (
 	"github.com/drasko/edgex-export"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type httpSender struct {
@@ -14,7 +16,7 @@ type httpSender struct {
 // Change parameter to Addressable?
 func NewHttpSender(addr export.Addressable) Sender {
 	var sender httpSender
-	sender.url = addr.Address
+	sender.url = strings.ToLower(addr.Protocol) + "://" + addr.Address + ":" + strconv.Itoa(addr.Port) + addr.Path
 	return sender
 }
 

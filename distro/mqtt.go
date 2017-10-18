@@ -5,6 +5,7 @@ import (
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"strconv"
+	"strings"
 )
 
 type mqttSender struct {
@@ -15,8 +16,8 @@ type mqttSender struct {
 func NewMqttSender(addr export.Addressable) Sender {
 
 	opts := MQTT.NewClientOptions()
-	broker := []string{addr.Address + ":" + strconv.Itoa(addr.Port)}
-	opts.AddBroker(broker[0])
+	broker := strings.ToLower(addr.Protocol) + "://" + addr.Address + ":" + strconv.Itoa(addr.Port)
+	opts.AddBroker(broker)
 	opts.SetClientID("edgex")
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
