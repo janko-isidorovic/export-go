@@ -20,4 +20,5 @@ func TestHttpNew(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		sender.Send(fmt.Sprintf("hola %d", i))
 	}
+	logger.Info("Test ok")
 }

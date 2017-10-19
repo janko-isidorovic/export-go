@@ -17,5 +17,5 @@ func TestMqttNew(t *testing.T) {
 
 		sender.Send(fmt.Sprintf("hola %d", i))
 	}
-	fmt.Println("Test ok")
+	logger.Info("Test ok")
 }

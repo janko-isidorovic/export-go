@@ -116,6 +116,7 @@ func connectToMongo(cfg *config) (*mgo.Session, error) {
 
 	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
+		logger.Error("Failed to connect to Mongo.", zap.Error(err))
 		return nil, err
 	}
 
