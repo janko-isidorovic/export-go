@@ -83,9 +83,7 @@ func (reg RegistrationInfo) processEvent( /*, event*/ ) {
 	// TODO Device filtering
 
 	// TODO Value filtering
-
-	// TODO formated := reg.format.Format( /* event*/ )
-	formated := []byte("just an example")
+	formated := reg.format.Format( /* event*/ )
 	compressed := formated
 	if reg.compression != nil {
 		compressed = reg.compression.Transform(formated)
