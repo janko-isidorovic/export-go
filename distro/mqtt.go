@@ -11,7 +11,7 @@ type mqttSender struct {
 	mqttClient MQTT.Client
 }
 
-const CLIENT_ID = "edgex"
+const clientID = "edgex"
 
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -19,7 +19,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 	// CHN: We will maintain this behaviour for compatibility with Java
 	broker := addr.Address + ":" + strconv.Itoa(addr.Port)
 	opts.AddBroker(broker)
-	opts.SetClientID(CLIENT_ID)
+	opts.SetClientID(clientID)
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
 

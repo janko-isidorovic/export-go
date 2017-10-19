@@ -12,7 +12,7 @@ type httpSender struct {
 	method string
 }
 
-const MIMETYPE_JSON = "application/json"
+const mimeTypeJSON = "application/json"
 
 func NewHttpSender(addr export.Addressable) Sender {
 	// CHN: Should be added protocol from Addressable instead of include it the address param.
@@ -31,23 +31,24 @@ func (sender httpSender) Send(data string) {
 		response, err := http.Get(sender.url)
 		if err != nil {
 			//FIXME
-			logger.Fatal("Error: ", zap.Error(err))
-		} else {
-			defer response.Body.Close()
-			logger.Info("Response: ", zap.String("status", response.Status))
+			logger.Error("Error: ", zap.Error(err))
+			return
 		}
+
+		defer response.Body.Close()
+		logger.Info("Response: ", zap.String("status", response.Status))
 
 	case export.MethodPost:
 		var buf string
-		response, err := http.Post(sender.url, MIMETYPE_JSON, nil)
+		response, err := http.Post(sender.url, mimeTypeJSON, nil)
 		if err != nil {
 			//FIXME
-			logger.Fatal("Error: ", zap.Error(err))
-		} else {
-			defer response.Body.Close()
-			logger.Info("Response: ", zap.String("status", response.Status))
-			logger.Info("Buf: ", zap.String("buf", buf))
+			logger.Error("Error: ", zap.Error(err))
+			return
 		}
+		defer response.Body.Close()
+		logger.Info("Response: ", zap.String("status", response.Status))
+		logger.Info("Buf: ", zap.String("buf", buf))
 
 	case export.MethodPut:
 		logger.Info("TBD method: ", zap.String("method", sender.method))
