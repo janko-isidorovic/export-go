@@ -34,7 +34,7 @@ func (sender httpSender) Send(data string) {
 			logger.Error("Error: ", zap.Error(err))
 			return
 		}
-    defer response.Body.Close()
+		defer response.Body.Close()
 		logger.Info("Response: ", zap.String("status", response.Status))
 
 	case export.MethodPost:
