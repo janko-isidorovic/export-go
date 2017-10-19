@@ -1,8 +1,6 @@
 package distro
 
 import (
-	// "io/ioutil"
-	// "net/http"
 	"fmt"
 	"github.com/drasko/edgex-export"
 	"testing"
@@ -18,5 +16,5 @@ func TestMqttNew(t *testing.T) {
 
 		sender.Send(fmt.Sprintf("hola %d", i))
 	}
-	fmt.Println("Test ok")
+	logger.Info("Test ok")
 }
