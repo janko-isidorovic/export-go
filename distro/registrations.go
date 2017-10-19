@@ -1,9 +1,11 @@
 package distro
 
 import (
-	"fmt"
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
+	"go.uber.org/zap"
+
+	"fmt"
 )
 
 var registrations []RegistrationInfo
@@ -24,21 +26,21 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	reg.format = nil
 	switch newReg.Format {
 	case export.FormatJSON:
-		// reg.format = distro.NewJsonFormat()
+		// TODO reg.format = distro.NewJsonFormat()
 		reg.format = dummy
 	case export.FormatXML:
-		// reg.format = distro.NewXmlFormat()
+		// TODO reg.format = distro.NewXmlFormat()
 		reg.format = dummy
 	case export.FormatSerialized:
-		// reg.format = distro.NewSerializedFormat()
+		// TODO reg.format = distro.NewSerializedFormat()
 	case export.FormatIoTCoreJSON:
-		// reg.format = distro.NewIotCoreFormat()
+		// TODO reg.format = distro.NewIotCoreFormat()
 	case export.FormatAzureJSON:
-		// reg.format = distro.NewAzureFormat()
+		// TODO reg.format = distro.NewAzureFormat()
 	case export.FormatCSV:
-		// reg.format = distro.NewCsvFormat()
+		// TODO reg.format = distro.NewCsvFormat()
 	default:
-		fmt.Println("Format not supported: ", newReg.Compression)
+		logger.Info("Format not supported: ", zap.String("format", newReg.Format))
 	}
 
 	reg.compression = nil
@@ -46,11 +48,11 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.CompNone:
 		reg.compression = nil
 	case export.CompGzip:
-		// reg.compression = distro.NewGzipComppression()
+		// TODO reg.compression = distro.NewGzipComppression()
 	case export.CompZip:
-		// reg.compression = distro.NewZipComppression()
+		// TODO reg.compression = distro.NewZipComppression()
 	default:
-		fmt.Println("Compression not supported: ", newReg.Compression)
+		logger.Info("Compression not supported: ", zap.String("compression", newReg.Compression))
 	}
 
 	reg.sender = nil
@@ -58,19 +60,18 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.DestMQTT:
 		reg.sender = NewMqttSender(newReg.Addressable)
 	case export.DestZMQ:
-		fmt.Print("Destination ZMQ is not supported")
-		//reg.sender = distro.NewZMQSender("TODO URL")
+		logger.Info("Destination ZMQ is not supported")
 	case export.DestIotCoreMQTT:
-		//reg.sender = distro.NewIotCoreSender("TODO URL")
+		// TODO reg.sender = distro.NewIotCoreSender("TODO URL")
 	case export.DestAzureMQTT:
-		//reg.sender = distro.NewAzureSender("TODO URL")
+		// TODO reg.sender = distro.NewAzureSender("TODO URL")
 	case export.DestRest:
 		reg.sender = NewHttpSender(newReg.Addressable)
 	default:
-		fmt.Println("Destination not supported: ", newReg.Destination)
+		logger.Info("Destination not supported: ", zap.String("destination", newReg.Destination))
 	}
 	if reg.format == nil || reg.sender == nil {
-		fmt.Println("Registration not supported")
+		logger.Error("Registration not supported")
 		return false
 	}
 	return true
@@ -79,11 +80,11 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 func (reg RegistrationInfo) processEvent( /*, event*/ ) {
 	// Valid Event Filter, needed?
 
-	// Device filtering TODO
+	// TODO Device filtering
 
-	// Value filtering TODO
+	// TODO Value filtering
 
-	//formated := reg.format.Format( /* event*/ )
+	// TODO formated := reg.format.Format( /* event*/ )
 	formated := []byte("just an example")
 	compressed := formated
 	if reg.compression != nil {
@@ -109,7 +110,7 @@ func TestDistro(repo *mongo.MongoRepository) {
 	}
 
 	for _, r := range registrations {
-		fmt.Println("a registration: ", r)
+		logger.Info("a registration:", zap.String("reg", fmt.Sprintf("%#v", r)))
 		r.processEvent()
 	}
 }

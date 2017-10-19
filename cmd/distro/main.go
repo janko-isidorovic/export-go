@@ -48,41 +48,14 @@ type config struct {
 	MongoSocketTimeout  int
 }
 
-// {
-// 	"_id" : ObjectId("59e4bdb9e4b091c2db2054c8"),
-// 	"_class" : "org.edgexfoundry.domain.export.ExportRegistration",
-// 	"name" : "MQTTClient2",
-// 	"addressable" : {
-// 		"_id" : null,
-// 		"name" : "FuseTestMQTTBroker2",
-// 		"protocol" : "TCP",
-// 		"address" : "tcp://127.0.0.1",
-// 		"port" : 1883,
-// 		"publisher" : "FuseExportPublisher",
-// 		"user" : "dummy",
-// 		"password" : "dummy",
-// 		"topic" : "FuseDataTopic",
-// 		"created" : NumberLong(0),
-// 		"modified" : NumberLong(0),
-// 		"origin" : NumberLong("1471806386919")
-// 	},
-// 	"format" : "JSON",
-// 	"compression" : "NONE",
-// 	"enable" : true,
-// 	"destination" : "MQTT_TOPIC",
-// 	"created" : NumberLong("1508163001830"),
-// 	"modified" : NumberLong("1508163001830"),
-// 	"origin" : NumberLong("1471806386919")
-// }
-
 func main() {
-	fmt.Println("Starting distro")
-	cfg := loadConfig()
-
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
 	distro.InitLogger(logger)
+
+	logger.Info("Starting distro")
+	cfg := loadConfig()
 
 	ms, err := connectToMongo(cfg)
 	if err != nil {
@@ -138,6 +111,11 @@ func env(key, fallback string) string {
 }
 
 func connectToMongo(cfg *config) (*mgo.Session, error) {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	distro.InitLogger(logger)
+
 	mongoDBDialInfo := &mgo.DialInfo{
 		Addrs:    []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
 		Timeout:  time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
@@ -148,6 +126,7 @@ func connectToMongo(cfg *config) (*mgo.Session, error) {
 
 	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
+		logger.Error("Failed to connect to Mongo.", zap.Error(err))
 		return nil, err
 	}
 
