@@ -6,18 +6,19 @@ import (
 	"testing"
 )
 
+// Probably not a good test as it requires external infrastucture
 func TestHttpNew(t *testing.T) {
-	addr := export.Addressable{
+
+	sender := NewHttpSender(export.Addressable{
 		Name:     "test",
-		Method:   "GET",
-		Protocol: "HTTP",
+		Method:   export.MethodGet,
+		Protocol: export.ProtoHTTP,
 		Address:  "http://127.0.0.1",
 		Port:     80,
-		Path:     "/"}
+		Path:     "/"})
 
-	sender := NewHttpSender(addr)
 	for i := 0; i < 1000; i++ {
 		sender.Send(fmt.Sprintf("hola %d", i))
 	}
+  
 	logger.Info("Test ok")
-}
