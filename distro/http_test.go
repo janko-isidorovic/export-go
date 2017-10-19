@@ -11,7 +11,7 @@ func TestHttpNew(t *testing.T) {
 		Name:     "test",
 		Method:   "GET",
 		Protocol: "HTTP",
-		Address:  "127.0.0.1",
+		Address:  "http://127.0.0.1",
 		Port:     80,
 		Path:     "/"}
 
