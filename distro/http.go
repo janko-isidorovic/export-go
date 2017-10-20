@@ -7,6 +7,8 @@
 package distro
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/drasko/edgex-export"
 	"go.uber.org/zap"
 	"net/http"
@@ -44,8 +46,11 @@ func (sender httpSender) Send(data string) {
 		logger.Info("Response: ", zap.String("status", response.Status))
 
 	case export.MethodPost:
-		var buf string
-		response, err := http.Post(sender.url, mimeTypeJSON, nil)
+
+		formData := new(bytes.Buffer)
+		json.NewEncoder(formData).Encode(data)
+
+		response, err := http.Post(sender.url, mimeTypeJSON, formData)
 		if err != nil {
 			//FIXME
 			logger.Error("Error: ", zap.Error(err))
@@ -53,7 +58,6 @@ func (sender httpSender) Send(data string) {
 		}
 		defer response.Body.Close()
 		logger.Info("Response: ", zap.String("status", response.Status))
-		logger.Info("Buf: ", zap.String("buf", buf))
 
 	case export.MethodPut:
 		logger.Info("TBD method: ", zap.String("method", sender.method))
