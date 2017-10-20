@@ -1,9 +1,11 @@
 package distro
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/drasko/edgex-export"
 	"go.uber.org/zap"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"testing"
@@ -17,26 +19,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("err", zap.Error(err))
 		}
-		fmt.Println(string(requestDump))
+		log.Info("Dump", zap.ByteString("Dump", requestDump))
+		w.WriteHeader(http.StatusOK)
 	}
 
 	if r.Method == export.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+
 		requestDump, err := httputil.DumpRequest(r, true)
 		if err != nil {
 			log.Fatal("err", zap.Error(err))
 		}
-		fmt.Println(string(requestDump))
+		log.Info("Dump", zap.ByteString("Dump", requestDump))
+
+		var jsonT string
+		err = json.NewDecoder(r.Body).Decode(&jsonT)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		log.Info("JSON", zap.String("JSON", fmt.Sprintf("%#v", jsonT)))
 	}
 
-	w.WriteHeader(http.StatusOK)
-}
-
-func RunServer() {
-	http.HandleFunc("/", handler)            // set router
-	err := http.ListenAndServe(":9090", nil) // set listen port
-	if err != nil {
-		log.Error("ListenAndServe: ", zap.Error(err))
-	}
 }
 
 // Probably not a good test as it requires external infrastucture
@@ -46,19 +50,26 @@ func TestHttpNew(t *testing.T) {
 
 	InitLogger(log)
 
-	go RunServer()
+	http.HandleFunc("/", handler)
 
-	sender := NewHttpSender(export.Addressable{
+	ln, err := net.Listen("tcp", ":9090")
+
+	if err != nil {
+		log.Error("Can't listen: %s", zap.Error(err))
+	}
+
+	go http.Serve(ln, nil)
+
+	//	defer ln.Close()
+
+	senderHttp := NewHttpSender(export.Addressable{
 		Name:     "test",
 		Method:   export.MethodGet,
 		Protocol: export.ProtoHTTP,
 		Address:  "http://127.0.0.1",
 		Port:     9090,
 		Path:     "/"})
-
-	for i := 0; i < 10; i++ {
-		sender.Send(fmt.Sprintf("hola %d", i))
-	}
+	senderHttp.Send("dummy")
 
 	log.Info("Test ok")
 
@@ -70,9 +81,7 @@ func TestHttpNew(t *testing.T) {
 		Port:     9090,
 		Path:     "/"})
 
-	for i := 0; i < 10; i++ {
-		senderPost.Send(fmt.Sprintf("hola %d", i))
-	}
+	senderPost.Send("{\"key\": \"Hello, \", \"value\": \"World!\"}")
 
 	log.Info("Test ok")
 }
