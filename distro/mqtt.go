@@ -12,6 +12,7 @@ type mqttSender struct {
 }
 
 const clientID = "edgex"
+const topic = "EdgeX"
 
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -36,7 +37,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 }
 
 func (sender mqttSender) Send(data string) {
-	token := sender.mqttClient.Publish("FCR", 0, false, data)
+	token := sender.mqttClient.Publish(topic, 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
 	logger.Info("Sent data: ", zap.String("data", data))
