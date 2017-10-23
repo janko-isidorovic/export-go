@@ -1,10 +1,12 @@
 package distro
 
 import (
-	"github.com/drasko/edgex-export"
-	"go.uber.org/zap"
+	"bytes"
 	"net/http"
 	"strconv"
+
+	"github.com/drasko/edgex-export"
+	"go.uber.org/zap"
 )
 
 type httpSender struct {
@@ -24,7 +26,7 @@ func NewHttpSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender httpSender) Send(data string) {
+func (sender httpSender) Send(data bytes.Buffer) {
 	switch sender.method {
 
 	case export.MethodGet:
@@ -59,5 +61,5 @@ func (sender httpSender) Send(data string) {
 		logger.Info("Unsupported method: ", zap.String("method", sender.method))
 	}
 
-	logger.Info("Sent data: ", zap.String("data", data))
+	logger.Info("Sent data: ", zap.ByteString("data", data.Bytes()))
 }

@@ -1,17 +1,20 @@
 package distro
 
-import "github.com/drasko/edgex-export"
+import (
+	"bytes"
+	"github.com/drasko/edgex-export"
+)
 
 type Sender interface {
-	Send(data string)
+	Send(data bytes.Buffer)
 }
 
 type Formater interface {
-	Format( /*event*/ ) []byte
+	Format( /*event*/ ) bytes.Buffer
 }
 
 type Transformer interface {
-	Transform(data []byte) []byte
+	Transform(data bytes.Buffer) bytes.Buffer
 }
 
 type RegistrationInfo struct {

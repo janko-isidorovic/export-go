@@ -1,11 +1,12 @@
 package distro
 
 import (
+	"bytes"
+	"fmt"
+
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
-
-	"fmt"
 )
 
 var registrations []RegistrationInfo
@@ -14,8 +15,10 @@ var registrations []RegistrationInfo
 type dummyFormat struct {
 }
 
-func (dummy dummyFormat) Format( /*event*/ ) []byte {
-	return []byte("dummy")
+func (dummy dummyFormat) Format( /*event*/ ) bytes.Buffer {
+	buf := bytes.Buffer{}
+	buf.WriteString("dummy")
+	return buf
 }
 
 var dummy dummyFormat
@@ -94,7 +97,7 @@ func (reg RegistrationInfo) processEvent( /*, event*/ ) {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
 
-	reg.sender.Send(string(encrypted))
+	reg.sender.Send(encrypted)
 }
 
 func TestDistro(repo *mongo.MongoRepository) {
