@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017 Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -7,12 +7,10 @@
 package distro
 
 import (
-	"bytes"
-	"strconv"
-
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"go.uber.org/zap"
+	"strconv"
 )
 
 type mqttSender struct {
@@ -20,6 +18,7 @@ type mqttSender struct {
 }
 
 const clientID = "edgex"
+const topic = "EdgeX"
 
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -43,9 +42,9 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data bytes.Buffer) {
-	token := sender.mqttClient.Publish("FCR", 0, false, data.Bytes())
+func (sender mqttSender) Send(data string) {
+	token := sender.mqttClient.Publish(topic, 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
-	logger.Info("Sent data: ", zap.ByteString("data", data.Bytes()))
+	logger.Info("Sent data: ", zap.String("data", data))
 }
