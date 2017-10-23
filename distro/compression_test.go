@@ -30,17 +30,6 @@ func TestGzip(t *testing.T) {
 	}
 }
 
-func BenchmarkGzip(b *testing.B) {
-	buf := bytes.Buffer{}
-	buf.WriteString(clearString)
-
-	comp := gzipTransformer{}
-
-	for i := 0; i < 100; i++ {
-		comp.Transform(buf)
-	}
-}
-
 func TestZlib(t *testing.T) {
 	buf := bytes.Buffer{}
 	buf.WriteString(clearString)
@@ -54,13 +43,30 @@ func TestZlib(t *testing.T) {
 	}
 }
 
+var result bytes.Buffer
+
+func BenchmarkGzip(b *testing.B) {
+	buf := bytes.Buffer{}
+	buf.WriteString(clearString)
+
+	comp := gzipTransformer{}
+
+	enc := bytes.Buffer{}
+	for i := 0; i < 1000; i++ {
+		enc = comp.Transform(buf)
+	}
+	result = enc
+}
+
 func BenchmarkZlib(b *testing.B) {
 	buf := bytes.Buffer{}
 	buf.WriteString(clearString)
 
 	comp := zlibTransformer{}
 
-	for i := 0; i < 100; i++ {
-		comp.Transform(buf)
+	enc := bytes.Buffer{}
+	for i := 0; i < 1000; i++ {
+		enc = comp.Transform(buf)
 	}
+	result = enc
 }
