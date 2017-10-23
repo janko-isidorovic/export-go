@@ -8,11 +8,11 @@ package distro
 
 import (
 	"bytes"
-	"encoding/json"
-	"github.com/drasko/edgex-export"
-	"go.uber.org/zap"
 	"net/http"
 	"strconv"
+
+	"github.com/drasko/edgex-export"
+	"go.uber.org/zap"
 )
 
 type httpSender struct {
@@ -32,7 +32,7 @@ func NewHttpSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender httpSender) Send(data string) {
+func (sender httpSender) Send(data bytes.Buffer) {
 	switch sender.method {
 
 	case export.MethodGet:
@@ -46,11 +46,8 @@ func (sender httpSender) Send(data string) {
 		logger.Info("Response: ", zap.String("status", response.Status))
 
 	case export.MethodPost:
-
-		formData := new(bytes.Buffer)
-		json.NewEncoder(formData).Encode(data)
-
-		response, err := http.Post(sender.url, mimeTypeJSON, formData)
+		var buf string
+		response, err := http.Post(sender.url, mimeTypeJSON, nil)
 		if err != nil {
 			//FIXME
 			logger.Error("Error: ", zap.Error(err))
@@ -58,6 +55,7 @@ func (sender httpSender) Send(data string) {
 		}
 		defer response.Body.Close()
 		logger.Info("Response: ", zap.String("status", response.Status))
+		logger.Info("Buf: ", zap.String("buf", buf))
 
 	case export.MethodPut:
 		logger.Info("TBD method: ", zap.String("method", sender.method))
@@ -69,5 +67,5 @@ func (sender httpSender) Send(data string) {
 		logger.Info("Unsupported method: ", zap.String("method", sender.method))
 	}
 
-	logger.Info("Sent data: ", zap.String("data", data))
+	logger.Info("Sent data: ", zap.ByteString("data", data.Bytes()))
 }
