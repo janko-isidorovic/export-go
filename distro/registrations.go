@@ -51,7 +51,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.CompNone:
 		reg.compression = nil
 	case export.CompGzip:
-		// TODO reg.compression = distro.NewGzipComppression()
+		reg.compression = gzipTransformer{}
 	case export.CompZip:
 		// TODO reg.compression = distro.NewZipComppression()
 	default:
