@@ -7,6 +7,7 @@
 package distro
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/drasko/edgex-export"
 	"testing"
@@ -19,9 +20,11 @@ func TestMqttNew(t *testing.T) {
 		Port:    1883,
 	})
 
+	buf := bytes.Buffer{}
 	for i := 0; i < 1000; i++ {
+		buf.WriteString(fmt.Sprintf("hola %d", i))
 
-		sender.Send(fmt.Sprintf("hola %d", i))
+		sender.Send(buf)
 	}
 	logger.Info("Test ok")
 }
