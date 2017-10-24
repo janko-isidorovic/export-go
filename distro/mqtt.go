@@ -1,7 +1,6 @@
 package distro
 
 import (
-	"bytes"
 	"strconv"
 
 	"github.com/drasko/edgex-export"
@@ -37,9 +36,9 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data bytes.Buffer) {
-	token := sender.mqttClient.Publish("FCR", 0, false, data.Bytes())
+func (sender mqttSender) Send(data []byte) {
+	token := sender.mqttClient.Publish("FCR", 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
-	logger.Info("Sent data: ", zap.ByteString("data", data.Bytes()))
+	logger.Info("Sent data: ", zap.ByteString("data", data))
 }

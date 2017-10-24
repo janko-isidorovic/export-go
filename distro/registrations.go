@@ -1,7 +1,6 @@
 package distro
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/drasko/edgex-export"
@@ -15,10 +14,8 @@ var registrations []RegistrationInfo
 type dummyFormat struct {
 }
 
-func (dummy dummyFormat) Format( /*event*/ ) bytes.Buffer {
-	buf := bytes.Buffer{}
-	buf.WriteString("dummy")
-	return buf
+func (dummy dummyFormat) Format( /*event*/ ) []byte {
+	return []byte("dummy")
 }
 
 var dummy dummyFormat

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"compress/gzip"
 	"compress/zlib"
+	"encoding/base64"
 )
 
 type gzipTransformer struct {
 	writer *gzip.Writer
 }
 
-func (gzt gzipTransformer) Transform(data bytes.Buffer) bytes.Buffer {
+func (gzt gzipTransformer) Transform(data []byte) []byte {
 	var buf bytes.Buffer
 
 	if gzt.writer == nil {
@@ -19,16 +20,17 @@ func (gzt gzipTransformer) Transform(data bytes.Buffer) bytes.Buffer {
 		gzt.writer.Reset(&buf)
 	}
 
-	gzt.writer.Write(data.Bytes())
+	gzt.writer.Write(data)
 	gzt.writer.Close()
-	return buf
+
+	return bytesBufferToBase64(buf)
 }
 
 type zlibTransformer struct {
 	writer *zlib.Writer
 }
 
-func (zlt zlibTransformer) Transform(data bytes.Buffer) bytes.Buffer {
+func (zlt zlibTransformer) Transform(data []byte) []byte {
 	var buf bytes.Buffer
 
 	if zlt.writer == nil {
@@ -37,7 +39,15 @@ func (zlt zlibTransformer) Transform(data bytes.Buffer) bytes.Buffer {
 		zlt.writer.Reset(&buf)
 	}
 
-	zlt.writer.Write(data.Bytes())
+	zlt.writer.Write(data)
 	zlt.writer.Close()
-	return buf
+
+	return bytesBufferToBase64(buf)
+}
+
+func bytesBufferToBase64(buf bytes.Buffer) []byte {
+	dst := make([]byte, 0, 0)
+
+	base64.StdEncoding.Encode(dst, buf.Bytes())
+	return dst
 }
