@@ -40,5 +40,5 @@ func (sender mqttSender) Send(data []byte) {
 	token := sender.mqttClient.Publish("FCR", 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
-	logger.Info("Sent data: ", zap.ByteString("data", data))
+	logger.Debug("Sent data: ", zap.ByteString("data", data))
 }

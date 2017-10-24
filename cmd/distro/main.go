@@ -81,7 +81,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	distro.TestDistro(repo)
+	go distro.Loop(repo, errs)
 
 	c := <-errs
 	logger.Info("terminated", zap.String("error", c.Error()))

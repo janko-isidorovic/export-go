@@ -29,4 +29,7 @@ type RegistrationInfo struct {
 	compression  Transformer
 	encrypt      Transformer
 	sender       Sender
+
+	chRegistration chan *RegistrationInfo
+	chEvent        chan bool // To be changed to event
 }
