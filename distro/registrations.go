@@ -2,13 +2,12 @@ package distro
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
 )
-
-var registrations []RegistrationInfo
 
 // To be removed when any other formater is implemented
 type dummyFormat struct {
@@ -74,6 +73,10 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 		logger.Error("Registration not supported")
 		return false
 	}
+
+	reg.chRegistration = make(chan *RegistrationInfo)
+	reg.chEvent = make(chan bool)
+
 	return true
 }
 
@@ -97,18 +100,53 @@ func (reg RegistrationInfo) processEvent( /*, event*/ ) {
 	reg.sender.Send(encrypted)
 }
 
-func TestDistro(repo *mongo.MongoRepository) {
+func registrationLoop(registration RegistrationInfo) {
+	logger.Info("registration loop started")
+	reg := registration
+	for {
+		select {
+		case /*event :=*/ <-reg.chEvent:
+			// fmt.Println("received event", event)
+			reg.processEvent()
+
+		case newResgistration := <-reg.chRegistration:
+			fmt.Println("received registration", newResgistration)
+			logger.Info("resgistration update")
+		}
+	}
+}
+
+func Loop(repo *mongo.MongoRepository, errChan chan error) {
+
+	var registrations []RegistrationInfo
+
 	sourceReg := getRegistrations(repo)
 
 	for i := range sourceReg {
 		var reg RegistrationInfo
 		if reg.update(sourceReg[i]) {
 			registrations = append(registrations, reg)
+			go registrationLoop(reg)
 		}
 	}
 
-	for _, r := range registrations {
-		logger.Info("a registration:", zap.String("reg", fmt.Sprintf("%#v", r)))
-		r.processEvent()
+	logger.Info("Starting resgistration loop")
+	for {
+		select {
+		// case e := <-errChan:
+		// 	// TODO kill all registration goroutines
+		// 	for r := range registrations {
+		// 		registrations[r].chRegistration <- nil
+		// 	}
+		// 	logger.Debug("exit msg", zap.Error(e))
+		// 	return
+
+		case <-time.After(time.Millisecond / 10):
+			//logger.Info("timeout")
+			for r := range registrations {
+				// TODO only sent event if it is not blocking
+				registrations[r].chEvent <- true
+			}
+		}
 	}
 }
