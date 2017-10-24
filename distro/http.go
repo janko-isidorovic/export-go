@@ -7,7 +7,6 @@
 package distro
 
 import (
-	"bytes"
 	"net/http"
 	"strconv"
 
@@ -32,7 +31,7 @@ func NewHttpSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender httpSender) Send(data bytes.Buffer) {
+func (sender httpSender) Send(data []byte) {
 	switch sender.method {
 
 	case export.MethodGet:
@@ -67,5 +66,5 @@ func (sender httpSender) Send(data bytes.Buffer) {
 		logger.Info("Unsupported method: ", zap.String("method", sender.method))
 	}
 
-	logger.Info("Sent data: ", zap.ByteString("data", data.Bytes()))
+	logger.Info("Sent data: ", zap.ByteString("data", data))
 }
