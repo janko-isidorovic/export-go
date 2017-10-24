@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	DbName         string = "test"
-	CollectionName string = "exclient"
+	DbName         string = "coredata"
+	CollectionName string = "exportConfiguration"
 )
 
 type MongoRepository struct {

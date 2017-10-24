@@ -2,43 +2,43 @@ package export
 
 // Compression algorithm types
 const (
-	CompNone = iota
-	CompGzip
-	CompZip
+	CompNone = "NONE"
+	CompGzip = "GZIP"
+	CompZip  = "ZIP"
 )
 
 // Data format types
 const (
-	FormatJSON = iota
-	FormatXML
-	FormatSerialized
-	FormatIoTCoreJSON
-	FormatAzureJSON
-	FormatCSV
+	FormatJSON        = "JSON"
+	FormatXML         = "XML"
+	FormatSerialized  = "SERIALIZED"
+	FormatIoTCoreJSON = "IOTCORE_JSON"
+	FormatAzureJSON   = "AZURE_JSON"
+	FormatCSV         = "CSV"
 )
 
 // Export destination types
 const (
-	DestMQTT = iota
-	DestZMQ
-	DestIotCoreMQTT
-	DestAzureMQTT
-	DestRest
+	DestMQTT        = "MQTT_TOPIC"
+	DestZMQ         = "ZMQ_TOPIC"
+	DestIotCoreMQTT = "IOTCORE_TOPIC"
+	DestAzureMQTT   = "AZURE_TOPIC"
+	DestRest        = "REST_ENDPOINT"
 )
 
 // Registration - Defines the registration details
 // on the part of north side export clients
 type Registration struct {
-	ID          string            `json:"id,omitempty"`
+	ID          string            `json:"_id,omitempty"`
 	Created     int64             `json:"created,omitempty"`
 	Modified    int64             `json:"modified,omitempty"`
 	Origin      int64             `json:"origin,omitempty"`
 	Name        string            `json:"name,omitempty"`
-	Addr        Addressable       `json:"addr,omitempty"`
-	Format      int               `json:"format,omitempty"`
+	Addressable Addressable       `json:"addressable,omitempty"`
+	Format      string            `json:"format,omitempty"`
 	Filter      Filter            `json:"filter,omitempty"`
 	Encryption  EncryptionDetails `json:"encryption,omitempty"`
-	Compression int               `json:"compression,omitempty"`
+	Compression string            `json:"compression,omitempty"`
 	Enable      bool              `json:"enable,omitempty"`
-	Destination int               `json:"destination,omitempty"`
+	Destination string            `json:"destination,omitempty"`
 }
