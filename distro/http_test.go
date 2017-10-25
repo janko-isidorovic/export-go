@@ -1,58 +1,53 @@
 package distro
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/drasko/edgex-export"
-	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"testing"
+
+	"github.com/drasko/edgex-export"
+	"go.uber.org/zap"
 )
 
 var log *zap.Logger
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handlerGet(w http.ResponseWriter, r *http.Request) {
 	if r.Method == export.MethodGet {
 		requestDump, err := httputil.DumpRequest(r, true)
 		if err != nil {
 			log.Error("err", zap.Error(err))
 		}
 		log.Info("Dump", zap.ByteString("Dump", requestDump))
-		w.WriteHeader(http.StatusOK)
 	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == export.MethodPost {
-		w.Header().Set("Content-Type", "application/json")
-
 		requestDump, err := httputil.DumpRequest(r, true)
 		if err != nil {
 			log.Fatal("err", zap.Error(err))
 		}
 		log.Info("Dump", zap.ByteString("Dump", requestDump))
 
-		var jsonT string
-		err = json.NewDecoder(r.Body).Decode(&jsonT)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-		log.Info("JSON", zap.String("JSON", fmt.Sprintf("%#v", jsonT)))
 	}
+
+	w.WriteHeader(http.StatusOK)
 
 }
 
-// Probably not a good test as it requires external infrastucture
 func TestHttpNew(t *testing.T) {
 	log, _ = zap.NewProduction()
 	defer log.Sync()
 
 	InitLogger(log)
 
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/GetTest", handlerGet)
+	http.HandleFunc("/PostTest", handlerPost)
 
-	ln, err := net.Listen("tcp", ":9090")
+	ln, err := net.Listen("tcp", "127.0.0.1:9090")
 
 	if err != nil {
 		log.Error("Can't listen: %s", zap.Error(err))
@@ -60,7 +55,7 @@ func TestHttpNew(t *testing.T) {
 
 	go http.Serve(ln, nil)
 
-	//	defer ln.Close()
+	defer ln.Close()
 
 	senderHttp := NewHttpSender(export.Addressable{
 		Name:     "test",
@@ -68,7 +63,7 @@ func TestHttpNew(t *testing.T) {
 		Protocol: export.ProtoHTTP,
 		Address:  "http://127.0.0.1",
 		Port:     9090,
-		Path:     "/"})
+		Path:     "/GetTest"})
 	senderHttp.Send("dummy")
 
 	log.Info("Test ok")
@@ -79,7 +74,7 @@ func TestHttpNew(t *testing.T) {
 		Protocol: export.ProtoHTTP,
 		Address:  "http://127.0.0.1",
 		Port:     9090,
-		Path:     "/"})
+		Path:     "/PostTest"})
 
 	senderPost.Send("{\"key\": \"Hello, \", \"value\": \"World!\"}")
 

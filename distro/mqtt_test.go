@@ -3,16 +3,18 @@ package distro
 import (
 	"bytes"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/drasko/edgex-export"
 	"github.com/surgemq/message"
 	"github.com/surgemq/surgemq/service"
 	"go.uber.org/zap"
-	"testing"
-	"time"
 )
 
 const addressAndPort = "tcp://127.0.0.1:12883"
 const stringCompare = "Hello, World!"
+const topic = "EdGeX"
 
 func runClient() {
 	// Instantiates a new Client
@@ -31,8 +33,8 @@ func runClient() {
 		log.Error("Error", zap.Error(err))
 	}
 	submsg := message.NewSubscribeMessage()
-	submsg.AddTopic([]byte("EdgeX"), 0)
-	c.Subscribe(submsg, nil, PublishFunc)
+	submsg.AddTopic([]byte(topic), 0)
+	c.Subscribe(submsg, nil, publishFunc)
 }
 
 func TestMqttNew(t *testing.T) {
@@ -57,6 +59,7 @@ func TestMqttNew(t *testing.T) {
 		Port:     12883,
 		User:     "user",
 		Password: "password",
+		Topic:    topic,
 	})
 
 	time.Sleep(2 * time.Second)
@@ -66,7 +69,7 @@ func TestMqttNew(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-func PublishFunc(msg *message.PublishMessage) error {
+func publishFunc(msg *message.PublishMessage) error {
 
 	log.Info("Message received: ", zap.ByteString("Payload:", msg.Payload()))
 

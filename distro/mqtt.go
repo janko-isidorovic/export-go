@@ -9,10 +9,10 @@ import (
 
 type mqttSender struct {
 	mqttClient MQTT.Client
+	topic      string
 }
 
 const clientID = "edgex"
-const topic = "EdgeX"
 
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -27,6 +27,8 @@ func NewMqttSender(addr export.Addressable) Sender {
 	var sender mqttSender
 
 	sender.mqttClient = MQTT.NewClient(opts)
+	sender.topic = addr.Topic
+
 	if token := sender.mqttClient.Connect(); token.Wait() && token.Error() != nil {
 		// FIXME
 		panic(token.Error())
@@ -37,7 +39,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 }
 
 func (sender mqttSender) Send(data string) {
-	token := sender.mqttClient.Publish(topic, 0, false, data)
+	token := sender.mqttClient.Publish(sender.topic, 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
 	logger.Info("Sent data: ", zap.String("data", data))
