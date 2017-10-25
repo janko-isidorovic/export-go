@@ -48,7 +48,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.CompGzip:
 		reg.compression = gzipTransformer{}
 	case export.CompZip:
-		// TODO reg.compression = distro.NewZipComppression()
+		reg.compression = zlibTransformer{}
 	default:
 		logger.Info("Compression not supported: ", zap.String("compression", newReg.Compression))
 	}
