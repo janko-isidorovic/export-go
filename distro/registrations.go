@@ -6,6 +6,15 @@
 
 package distro
 
+// TODO:
+// - Filtering by id and value
+// - Receive events from 0mq until a new message broker/rpc is chosen
+// - Implement json/xml/.... serializers
+// - Senders should not connect at creation time, but when first event comes.
+//   - Reconnect after disconnect
+//   - Event buffer management per sender(do not block distro.Loop on full
+//   registration channel)
+
 import (
 	"time"
 
@@ -85,7 +94,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	return true
 }
 
-func (reg RegistrationInfo) processEvent( /*, event*/ ) {
+func (reg RegistrationInfo) processEvent( /*event*/ ) {
 	// Valid Event Filter, needed?
 
 	// TODO Device filtering
@@ -111,13 +120,13 @@ func registrationLoop(registration RegistrationInfo) {
 	for {
 		select {
 		case /*event :=*/ <-reg.chEvent:
-			// fmt.Println("received event", event)
-			reg.processEvent()
+			reg.processEvent( /*event*/ )
 
 		case newResgistration := <-reg.chRegistration:
 			if newResgistration == nil {
 				logger.Info("Terminate registration goroutine")
 			} else {
+				// TODO implement updating the registration info.
 				logger.Info("resgistration update")
 			}
 		}
@@ -142,7 +151,7 @@ func Loop(repo *mongo.MongoRepository, errChan chan error) {
 	for {
 		select {
 		case e := <-errChan:
-			// TODO kill all registration goroutines
+			// kill all registration goroutines
 			for r := range registrations {
 				registrations[r].chRegistration <- nil
 			}
@@ -150,7 +159,7 @@ func Loop(repo *mongo.MongoRepository, errChan chan error) {
 			return
 
 		case <-time.After(time.Millisecond / 10):
-			//logger.Info("timeout")
+			// Simulate receiving 10k events/seg
 			for r := range registrations {
 				// TODO only sent event if it is not blocking
 				registrations[r].chEvent <- true

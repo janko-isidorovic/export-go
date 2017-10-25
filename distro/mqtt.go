@@ -38,7 +38,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 
 func (sender mqttSender) Send(data []byte) {
 	token := sender.mqttClient.Publish("FCR", 0, false, data)
-	// FCR could be removed? set of tokens?
+	// FIXME could be removed? set of tokens?
 	token.Wait()
 	logger.Debug("Sent data: ", zap.ByteString("data", data))
 }
