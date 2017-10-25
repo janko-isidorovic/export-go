@@ -1,18 +1,19 @@
 package distro
 
 import (
-	"strconv"
-
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"go.uber.org/zap"
+	"strconv"
 )
 
 type mqttSender struct {
 	mqttClient MQTT.Client
+	topic      string
 }
 
 const clientID = "edgex"
+const topic = "EdgeX"
 
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -27,6 +28,8 @@ func NewMqttSender(addr export.Addressable) Sender {
 	var sender mqttSender
 
 	sender.mqttClient = MQTT.NewClient(opts)
+	sender.topic = addr.Topic
+
 	if token := sender.mqttClient.Connect(); token.Wait() && token.Error() != nil {
 		// FIXME
 		panic(token.Error())
@@ -36,9 +39,9 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data []byte) {
-	token := sender.mqttClient.Publish("FCR", 0, false, data)
-	// FIXME could be removed? set of tokens?
+func (sender mqttSender) Send(data string) {
+	token := sender.mqttClient.Publish(sender.topic, 0, false, data)
+	// FCR could be removed? set of tokens?
 	token.Wait()
-	logger.Debug("Sent data: ", zap.ByteString("data", data))
+	logger.Info("Sent data: ", zap.String("data", data))
 }
