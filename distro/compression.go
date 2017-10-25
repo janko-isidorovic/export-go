@@ -46,8 +46,7 @@ func (zlt zlibTransformer) Transform(data []byte) []byte {
 }
 
 func bytesBufferToBase64(buf bytes.Buffer) []byte {
-	dst := make([]byte, 0, 0)
-
+	dst := make([]byte, base64.StdEncoding.EncodedLen(buf.Len()))
 	base64.StdEncoding.Encode(dst, buf.Bytes())
 	return dst
 }
