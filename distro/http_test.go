@@ -1,7 +1,6 @@
 package distro
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/drasko/edgex-export"
 	"testing"
@@ -18,11 +17,9 @@ func TestHttpNew(t *testing.T) {
 		Port:     80,
 		Path:     "/"})
 
-	buf := bytes.Buffer{}
 	for i := 0; i < 1000; i++ {
-		buf.WriteString(fmt.Sprintf("hola %d", i))
-		sender.Send(buf)
-		buf.Reset()
+		str := fmt.Sprintf("hola %d", i)
+		sender.Send([]byte(str))
 	}
 
 	logger.Info("Test ok")
