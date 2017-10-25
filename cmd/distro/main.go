@@ -81,10 +81,9 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	go distro.Loop(repo, errs)
+	distro.Loop(repo, errs)
 
-	c := <-errs
-	logger.Info("terminated", zap.String("error", c.Error()))
+	logger.Info("terminated")
 }
 
 func loadConfig() *config {

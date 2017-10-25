@@ -7,7 +7,6 @@
 package distro
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/drasko/edgex-export"
@@ -116,8 +115,11 @@ func registrationLoop(registration RegistrationInfo) {
 			reg.processEvent()
 
 		case newResgistration := <-reg.chRegistration:
-			fmt.Println("received registration", newResgistration)
-			logger.Info("resgistration update")
+			if newResgistration == nil {
+				logger.Info("Terminate registration goroutine")
+			} else {
+				logger.Info("resgistration update")
+			}
 		}
 	}
 }
@@ -139,13 +141,13 @@ func Loop(repo *mongo.MongoRepository, errChan chan error) {
 	logger.Info("Starting resgistration loop")
 	for {
 		select {
-		// case e := <-errChan:
-		// 	// TODO kill all registration goroutines
-		// 	for r := range registrations {
-		// 		registrations[r].chRegistration <- nil
-		// 	}
-		// 	logger.Debug("exit msg", zap.Error(e))
-		// 	return
+		case e := <-errChan:
+			// TODO kill all registration goroutines
+			for r := range registrations {
+				registrations[r].chRegistration <- nil
+			}
+			logger.Info("exit msg", zap.Error(e))
+			return
 
 		case <-time.After(time.Millisecond / 10):
 			//logger.Info("timeout")
