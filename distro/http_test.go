@@ -70,7 +70,9 @@ func TestHttpNew(t *testing.T) {
 		Address:  "http://127.0.0.1",
 		Port:     9090,
 		Path:     "/GetTest"})
-	senderHttp.Send("dummy")
+
+	dataToSend := []byte("dummy")
+	senderHttp.Send(dataToSend)
 
 	log.Info("Test ok")
 
@@ -82,7 +84,7 @@ func TestHttpNew(t *testing.T) {
 		Port:     9090,
 		Path:     "/PostTest"})
 
-	senderPost.Send("{\"key\": \"Hello, \", \"value\": \"World!\"}")
+	senderPost.Send([]byte("{\"key\": \"Hello, \", \"value\": \"World!\"}"))
 
 	log.Info("Test ok")
 }

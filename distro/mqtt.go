@@ -39,7 +39,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data string) {
+func (sender mqttSender) Send(data []byte) {
 	token := sender.mqttClient.Publish(sender.topic, 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
