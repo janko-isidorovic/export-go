@@ -1,9 +1,12 @@
 package distro
 
-import "github.com/drasko/edgex-export"
+import (
+	//"bytes"
+	"github.com/drasko/edgex-export"
+)
 
 type Sender interface {
-	Send(data string)
+	Send(data []byte)
 }
 
 type Formater interface {
@@ -20,4 +23,7 @@ type RegistrationInfo struct {
 	compression  Transformer
 	encrypt      Transformer
 	sender       Sender
+
+	chRegistration chan *RegistrationInfo
+	chEvent        chan bool // To be changed to event
 }

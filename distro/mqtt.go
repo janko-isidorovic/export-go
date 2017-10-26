@@ -1,10 +1,11 @@
 package distro
 
 import (
+	"strconv"
+
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 type mqttSender struct {
@@ -42,5 +43,5 @@ func (sender mqttSender) Send(data string) {
 	token := sender.mqttClient.Publish(sender.topic, 0, false, data)
 	// FCR could be removed? set of tokens?
 	token.Wait()
-	logger.Info("Sent data: ", zap.String("data", data))
+	logger.Debug("Sent data: ", zap.ByteString("data", data))
 }
