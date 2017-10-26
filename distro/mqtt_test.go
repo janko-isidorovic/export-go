@@ -2,7 +2,6 @@ package distro
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 	"time"
 
@@ -65,7 +64,7 @@ func TestMqttNew(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	go runClient()
 	time.Sleep(2 * time.Second)
-	sender.Send(fmt.Sprintf("Hello, World!"))
+	sender.Send([]byte("Hello, World!"))
 	time.Sleep(1 * time.Second)
 }
 
