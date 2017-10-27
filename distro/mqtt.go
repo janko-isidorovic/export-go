@@ -8,8 +8,8 @@ import (
 )
 
 type mqttSender struct {
-	mqttClient MQTT.Client
-	topic      string
+	client MQTT.Client
+	topic  string
 }
 
 const clientID = "edgex"
@@ -27,8 +27,10 @@ func NewMqttSender(addr export.Addressable) Sender {
 
 	var sender mqttSender
 
-	sender.mqttClient = MQTT.NewClient(opts)
-	sender.topic = addr.Topic
+	sender := mqttClient{
+		client: MQTT.NewClient(opts),
+		topic:  addr.Topic,
+	}
 
 	if token := sender.mqttClient.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
