@@ -7,7 +7,3 @@ import:
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
-- package: github.com/surgemq/surgemq/service
-  subpackages:
-  - github.com/surge/glog
-  - github.com/surgemq/message
