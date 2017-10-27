@@ -1,7 +1,6 @@
 package distro
 
 import (
-	//"bytes"
 	"github.com/drasko/edgex-export"
 )
 
@@ -10,7 +9,7 @@ type Sender interface {
 }
 
 type Formater interface {
-	Format( /*event*/ ) []byte
+	Format( /* FIXME event*/ ) []byte
 }
 
 type Transformer interface {
@@ -25,5 +24,7 @@ type RegistrationInfo struct {
 	sender       Sender
 
 	chRegistration chan *RegistrationInfo
-	chEvent        chan bool // To be changed to event
+
+	// TODO To be changed to event
+	chEvent chan bool
 }
