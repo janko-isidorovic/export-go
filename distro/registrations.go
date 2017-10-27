@@ -108,9 +108,8 @@ func (reg RegistrationInfo) processEvent( /*event*/ ) {
 	reg.sender.Send(encrypted)
 }
 
-func registrationLoop(registration RegistrationInfo) {
+func registrationLoop(reg RegistrationInfo) {
 	logger.Info("registration loop started")
-	reg := registration
 	for {
 		select {
 		case /*event :=*/ <-reg.chEvent:
@@ -121,7 +120,7 @@ func registrationLoop(registration RegistrationInfo) {
 				logger.Info("Terminate registration goroutine")
 			} else {
 				// TODO implement updating the registration info.
-				logger.Info("resgistration update")
+				logger.Info("Registration updated")
 			}
 		}
 	}
