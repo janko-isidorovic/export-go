@@ -1,10 +1,3 @@
-//
-// (C) Copyright 2017
-// Mainflux
-//
-// SPDX-License-Identifier:	Apache-2.0
-//
-
 package distro
 
 import "github.com/drasko/edgex-export"
