@@ -1,3 +1,10 @@
+//
+// (C) Copyright 2017
+// Mainflux
+//
+// SPDX-License-Identifier:	Apache-2.0
+//
+
 package client
 
 import "go.uber.org/zap"
