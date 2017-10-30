@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017 Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -7,10 +7,12 @@
 package distro
 
 import (
-	"github.com/drasko/edgex-export"
-	"go.uber.org/zap"
+	"bytes"
 	"net/http"
 	"strconv"
+
+	"github.com/drasko/edgex-export"
+	"go.uber.org/zap"
 )
 
 type httpSender struct {
@@ -30,13 +32,12 @@ func NewHttpSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender httpSender) Send(data string) {
+func (sender httpSender) Send(data []byte) {
 	switch sender.method {
 
 	case export.MethodGet:
 		response, err := http.Get(sender.url)
 		if err != nil {
-			//FIXME
 			logger.Error("Error: ", zap.Error(err))
 			return
 		}
@@ -44,26 +45,16 @@ func (sender httpSender) Send(data string) {
 		logger.Info("Response: ", zap.String("status", response.Status))
 
 	case export.MethodPost:
-		var buf string
-		response, err := http.Post(sender.url, mimeTypeJSON, nil)
+		response, err := http.Post(sender.url, mimeTypeJSON, bytes.NewReader(data))
 		if err != nil {
-			//FIXME
 			logger.Error("Error: ", zap.Error(err))
 			return
 		}
 		defer response.Body.Close()
 		logger.Info("Response: ", zap.String("status", response.Status))
-		logger.Info("Buf: ", zap.String("buf", buf))
-
-	case export.MethodPut:
-		logger.Info("TBD method: ", zap.String("method", sender.method))
-	case export.MethodPatch:
-		logger.Info("TBD method: ", zap.String("method", sender.method))
-	case export.MethodDelete:
-		logger.Info("TBD method: ", zap.String("method", sender.method))
 	default:
 		logger.Info("Unsupported method: ", zap.String("method", sender.method))
 	}
 
-	logger.Info("Sent data: ", zap.String("data", data))
+	logger.Info("Sent data: ", zap.ByteString("data", data))
 }

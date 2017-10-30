@@ -1,20 +1,27 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017 Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 
 package distro
 
+// TODO:
+// - Filtering by id and value
+// - Receive events from 0mq until a new message broker/rpc is chosen
+// - Implement json/xml/.... serializers
+// - Senders should not connect at creation time, but when first event comes.
+//   - Reconnect after disconnect
+//   - Event buffer management per sender(do not block distro.Loop on full
+//   registration channel)
+
 import (
+	"time"
+
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
-
-	"fmt"
 )
-
-var registrations []RegistrationInfo
 
 // To be removed when any other formater is implemented
 type dummyFormat struct {
@@ -54,9 +61,9 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.CompNone:
 		reg.compression = nil
 	case export.CompGzip:
-		// TODO reg.compression = distro.NewGzipComppression()
+		reg.compression = gzipTransformer{}
 	case export.CompZip:
-		// TODO reg.compression = distro.NewZipComppression()
+		reg.compression = zlibTransformer{}
 	default:
 		logger.Info("Compression not supported: ", zap.String("compression", newReg.Compression))
 	}
@@ -80,10 +87,14 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 		logger.Error("Registration not supported")
 		return false
 	}
+
+	reg.chRegistration = make(chan *RegistrationInfo)
+	reg.chEvent = make(chan bool)
+
 	return true
 }
 
-func (reg RegistrationInfo) processEvent( /*, event*/ ) {
+func (reg RegistrationInfo) processEvent( /*event*/ ) {
 	// Valid Event Filter, needed?
 
 	// TODO Device filtering
@@ -100,21 +111,58 @@ func (reg RegistrationInfo) processEvent( /*, event*/ ) {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
 
-	reg.sender.Send(string(encrypted))
+	reg.sender.Send(encrypted)
 }
 
-func TestDistro(repo *mongo.MongoRepository) {
+func registrationLoop(reg RegistrationInfo) {
+	logger.Info("registration loop started")
+	for {
+		select {
+		case /*event :=*/ <-reg.chEvent:
+			reg.processEvent( /*event*/ )
+
+		case newReg := <-reg.chRegistration:
+			if newReg == nil {
+				logger.Info("Terminate registration goroutine")
+			} else {
+				// TODO implement updating the registration info.
+				logger.Info("Registration updated")
+			}
+		}
+	}
+}
+
+func Loop(repo *mongo.MongoRepository, errChan chan error) {
+
+	var registrations []RegistrationInfo
+
 	sourceReg := getRegistrations(repo)
 
 	for i := range sourceReg {
 		var reg RegistrationInfo
 		if reg.update(sourceReg[i]) {
 			registrations = append(registrations, reg)
+			go registrationLoop(reg)
 		}
 	}
 
-	for _, r := range registrations {
-		logger.Info("a registration:", zap.String("reg", fmt.Sprintf("%#v", r)))
-		r.processEvent()
+	logger.Info("Starting registration loop")
+	for {
+		select {
+		case e := <-errChan:
+			// kill all registration goroutines
+			for r := range registrations {
+				registrations[r].chRegistration <- nil
+			}
+			logger.Info("exit msg", zap.Error(e))
+			return
+
+		case <-time.After(time.Millisecond / 10):
+			// Simulate receiving 10k events/seg
+			for r := range registrations {
+				// TODO only sent event if it is not blocking
+				registrations[r].chEvent <- true
+			}
+		}
 	}
 }
