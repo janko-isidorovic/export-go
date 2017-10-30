@@ -8,9 +8,10 @@ package client
 
 import "github.com/drasko/edgex-export/mongo"
 
-var repo *mongo.MongoRepository
+var repo *mongo.Repository
 
-func InitMongoRepository(r *mongo.MongoRepository) {
+// InitMongoRepository - Init Mongo DB
+func InitMongoRepository(r *mongo.Repository) {
 	repo = r
 	return
 }

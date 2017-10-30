@@ -10,15 +10,19 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+// DBName - DB name
+// CollectionName - Collection name
 const (
-	DbName         string = "coredata"
+	DBName         string = "coredata"
 	CollectionName string = "exportConfiguration"
 )
 
-type MongoRepository struct {
+// Repository - get Mongo session
+type Repository struct {
 	Session *mgo.Session
 }
 
-func NewMongoRepository(ms *mgo.Session) *MongoRepository {
-	return &MongoRepository{Session: ms}
+// NewMongoRepository - create new Mongo repository
+func NewRepository(ms *mgo.Session) *Repository {
+	return &Repository{Session: ms}
 }
