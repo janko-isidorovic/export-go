@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2017 Cavium
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 package distro
 
 import (
@@ -42,5 +48,5 @@ func (sender mqttSender) Send(data []byte) {
 	token := sender.client.Publish(sender.topic, 0, false, data)
 	// FIXME: could be removed? set of tokens?
 	token.Wait()
-	logger.Info("Sent data: ", zap.String("data", data))
+	logger.Info("Sent data: ", zap.ByteString("data", data))
 }

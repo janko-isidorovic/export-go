@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Cavium 
+// Copyright (c) 2017 Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/drasko/edgex-export"
 	"go.uber.org/zap"
@@ -46,7 +45,7 @@ func (sender httpSender) Send(data []byte) {
 		logger.Info("Response: ", zap.String("status", response.Status))
 
 	case export.MethodPost:
-		response, err := http.Post(sender.url, mimeTypeJSON, strings.NewReader(data))
+		response, err := http.Post(sender.url, mimeTypeJSON, bytes.NewReader(data))
 		if err != nil {
 			logger.Error("Error: ", zap.Error(err))
 			return
