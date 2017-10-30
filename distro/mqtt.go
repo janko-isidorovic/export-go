@@ -31,23 +31,31 @@ func NewMqttSender(addr export.Addressable) Sender {
 	opts.SetClientID(clientID)
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
+	opts.SetAutoReconnect(false)
 
 	sender := mqttSender{
 		client: MQTT.NewClient(opts),
 		topic:  addr.Topic,
 	}
 
-	if token := sender.client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
-	}
-	logger.Info("Sample Publisher Started")
-
 	return sender
 }
 
 func (sender mqttSender) Send(data []byte) {
+	if !sender.client.IsConnected() {
+		logger.Info("Connecting to mqtt server")
+		if token := sender.client.Connect(); token.Wait() && token.Error() != nil {
+			logger.Warn("Could not connect to mqtt server, drop event")
+			return
+		}
+	}
+
 	token := sender.client.Publish(sender.topic, 0, false, data)
 	// FIXME: could be removed? set of tokens?
 	token.Wait()
-	logger.Debug("Sent data: ", zap.ByteString("data", data))
+	if token.Error() != nil {
+		logger.Warn("mqtt error: ", zap.Error(token.Error()))
+	} else {
+		logger.Debug("Sent data: ", zap.ByteString("data", data))
+	}
 }
