@@ -22,7 +22,7 @@ type Repository struct {
 	Session *mgo.Session
 }
 
-// NewMongoRepository - create new Mongo repository
+// NewRepository - create new Mongo repository
 func NewRepository(ms *mgo.Session) *Repository {
 	return &Repository{Session: ms}
 }
