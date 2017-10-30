@@ -240,6 +240,8 @@ func Loop(errChan chan error) {
 		}
 	}
 
+	go initZmq()
+
 	logger.Info("Starting registration loop")
 	for {
 		select {
