@@ -60,7 +60,7 @@ func main() {
 	}
 	defer ms.Close()
 
-	repo := mongo.NewMongoRepository(ms)
+	repo := mongo.NewRepository(ms)
 	client.InitMongoRepository(repo)
 
 	errs := make(chan error, 2)

@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Cavium
+// Copyright (c) 2017
+// Cavium
+// Mainflux
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -22,6 +24,7 @@ type mqttSender struct {
 const clientID = "edgex"
 const topic = "EdgeX"
 
+// NewMqttSender - create new mqtt sender
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
 	// CHN: Should be added protocol from Addressable instead of include it the address param.

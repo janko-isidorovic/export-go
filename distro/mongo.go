@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Cavium
+// Copyright (c) 2017
+// Cavium
+// Mainflux
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -13,19 +15,20 @@ import (
 	"go.uber.org/zap"
 )
 
-var repo *mongo.MongoRepository
+var repo *mongo.Repository
 
-func InitMongoRepository(r *mongo.MongoRepository) {
+// InitMongoRepository - Init Mongo DB
+func InitMongoRepository(r *mongo.Repository) {
 	repo = r
 	return
 }
 
-func getRegistrations(repo *mongo.MongoRepository) []export.Registration {
+func getRegistrations(repo *mongo.Repository) []export.Registration {
 
 	s := repo.Session.Copy()
 	defer s.Close()
 
-	c := s.DB(mongo.DbName).C(mongo.CollectionName)
+	c := s.DB(mongo.DBName).C(mongo.CollectionName)
 
 	results := []export.Registration{}
 	err := c.Find(nil).All(&results)

@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Cavium
+// Copyright (c) 2017
+// Cavium
+// Mainflux
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -62,7 +64,7 @@ func main() {
 	}
 	defer ms.Close()
 
-	repo := mongo.NewMongoRepository(ms)
+	repo := mongo.NewRepository(ms)
 	distro.InitMongoRepository(repo)
 
 	errs := make(chan error, 2)

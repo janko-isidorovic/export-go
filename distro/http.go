@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Cavium
+// Copyright (c) 2017
+// Cavium
+// Mainflux
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -22,7 +24,8 @@ type httpSender struct {
 
 const mimeTypeJSON = "application/json"
 
-func NewHttpSender(addr export.Addressable) Sender {
+// NewHTTPSender - create http sender
+func NewHTTPSender(addr export.Addressable) Sender {
 	// CHN: Should be added protocol from Addressable instead of include it the address param.
 	// CHN: We will maintain this behaviour for compatibility with Java
 	sender := httpSender{

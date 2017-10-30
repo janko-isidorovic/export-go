@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Cavium
+// Copyright (c) 2017
+// Cavium
+// Mainflux
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -77,7 +79,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.DestAzureMQTT:
 		// TODO reg.sender = distro.NewAzureSender("TODO URL")
 	case export.DestRest:
-		reg.sender = NewHttpSender(newReg.Addressable)
+		reg.sender = NewHTTPSender(newReg.Addressable)
 	default:
 		logger.Info("Destination not supported: ", zap.String("destination", newReg.Destination))
 	}
@@ -130,7 +132,8 @@ func registrationLoop(reg RegistrationInfo) {
 	}
 }
 
-func Loop(repo *mongo.MongoRepository, errChan chan error) {
+// Loop - registration loop
+func Loop(repo *mongo.Repository, errChan chan error) {
 
 	var registrations []RegistrationInfo
 
