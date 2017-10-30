@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017 Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -7,17 +7,20 @@
 package distro
 
 import (
+	"strconv"
+
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 type mqttSender struct {
-	mqttClient MQTT.Client
+	client MQTT.Client
+	topic  string
 }
 
 const clientID = "edgex"
+const topic = "EdgeX"
 
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -29,11 +32,12 @@ func NewMqttSender(addr export.Addressable) Sender {
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
 
-	var sender mqttSender
+	sender := mqttSender{
+		client: MQTT.NewClient(opts),
+		topic:  addr.Topic,
+	}
 
-	sender.mqttClient = MQTT.NewClient(opts)
-	if token := sender.mqttClient.Connect(); token.Wait() && token.Error() != nil {
-		// FIXME
+	if token := sender.client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
 	logger.Info("Sample Publisher Started")
@@ -41,9 +45,9 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data string) {
-	token := sender.mqttClient.Publish("FCR", 0, false, data)
-	// FCR could be removed? set of tokens?
+func (sender mqttSender) Send(data []byte) {
+	token := sender.client.Publish(sender.topic, 0, false, data)
+	// FIXME: could be removed? set of tokens?
 	token.Wait()
-	logger.Info("Sent data: ", zap.String("data", data))
+	logger.Debug("Sent data: ", zap.ByteString("data", data))
 }

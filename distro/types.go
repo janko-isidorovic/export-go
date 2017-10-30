@@ -1,19 +1,21 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017 Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 
 package distro
 
-import "github.com/drasko/edgex-export"
+import (
+	"github.com/drasko/edgex-export"
+)
 
 type Sender interface {
-	Send(data string)
+	Send(data []byte)
 }
 
 type Formater interface {
-	Format( /*event*/ ) []byte
+	Format( /* FIXME event*/ ) []byte
 }
 
 type Transformer interface {
@@ -26,4 +28,9 @@ type RegistrationInfo struct {
 	compression  Transformer
 	encrypt      Transformer
 	sender       Sender
+
+	chRegistration chan *RegistrationInfo
+
+	// TODO To be changed to event
+	chEvent chan bool
 }
