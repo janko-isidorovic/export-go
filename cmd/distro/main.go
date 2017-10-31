@@ -48,8 +48,10 @@ type config struct {
 	MongoSocketTimeout  int
 }
 
+var logger *zap.Logger
+
 func main() {
-	logger, _ := zap.NewProduction()
+	logger, _ = zap.NewProduction()
 	defer logger.Sync()
 
 	distro.InitLogger(logger)
@@ -110,11 +112,6 @@ func env(key, fallback string) string {
 }
 
 func connectToMongo(cfg *config) (*mgo.Session, error) {
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
-
-	distro.InitLogger(logger)
-
 	mongoDBDialInfo := &mgo.DialInfo{
 		Addrs:    []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
 		Timeout:  time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
