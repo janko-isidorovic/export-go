@@ -19,7 +19,7 @@ type Sender interface {
 
 // Formater - Format interface
 type Formater interface {
-	Format( /* FIXME event*/ ) []byte
+	Format(event *export.Event) []byte
 }
 
 // Transformer - Transform interface
@@ -37,6 +37,5 @@ type RegistrationInfo struct {
 
 	chRegistration chan *RegistrationInfo
 
-	// TODO To be changed to event
-	chEvent chan bool
+	chEvent chan *export.Event
 }
