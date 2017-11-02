@@ -9,11 +9,11 @@
 package distro
 
 import (
-	"math/rand"
 	"strconv"
 
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
 )
 
@@ -27,7 +27,9 @@ const topic = "EdgeX"
 
 // NewMqttSender - create new mqtt sender
 func NewMqttSender(addr export.Addressable) Sender {
-	clientStr := clientID + "_" + strconv.FormatInt(rand.Int63(), 16)
+	// ClientId needs to be unique for each connection, otherwise the broker can
+	// close previous connection with the same id
+	clientStr := clientID + "_" + uuid.NewV4().String()
 
 	opts := MQTT.NewClientOptions()
 	// CHN: Should be added protocol from Addressable instead of include it the address param.
