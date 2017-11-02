@@ -27,7 +27,7 @@ import (
 type dummyFormat struct {
 }
 
-func (dummy dummyFormat) Format( /*event*/ ) []byte {
+func (dummy dummyFormat) Format(event *export.Event) []byte {
 	return []byte("dummy")
 }
 
@@ -89,18 +89,21 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	}
 
 	reg.chRegistration = make(chan *RegistrationInfo)
-	reg.chEvent = make(chan bool)
+	reg.chEvent = make(chan *export.Event)
 
 	return true
 }
 
-func (reg RegistrationInfo) processEvent( /*event*/ ) {
+func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
 	// TODO Device filtering
 
 	// TODO Value filtering
-	formated := reg.format.Format( /* event*/ )
+
+	logger.Info("Event: ", zap.String("device", event.Device))
+
+	formated := reg.format.Format(event)
 	compressed := formated
 	if reg.compression != nil {
 		compressed = reg.compression.Transform(formated)
@@ -118,8 +121,8 @@ func registrationLoop(reg RegistrationInfo) {
 	logger.Info("registration loop started")
 	for {
 		select {
-		case /*event :=*/ <-reg.chEvent:
-			reg.processEvent( /*event*/ )
+		case event := <-reg.chEvent:
+			reg.processEvent(event)
 
 		case newReg := <-reg.chRegistration:
 			if newReg == nil {
@@ -158,11 +161,14 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 			logger.Info("exit msg", zap.Error(e))
 			return
 
-		case <-time.After(time.Millisecond / 10):
-			// Simulate receiving 10k events/seg
+		case <-time.After(time.Second):
+			// Simulate receiving events
+			event := getNextEvent()
+			logger.Info("Event: ", zap.Int("length", len(registrations)))
+
 			for r := range registrations {
 				// TODO only sent event if it is not blocking
-				registrations[r].chEvent <- true
+				registrations[r].chEvent <- event
 			}
 		}
 	}
