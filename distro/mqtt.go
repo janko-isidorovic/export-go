@@ -13,7 +13,6 @@ import (
 
 	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
 )
 
@@ -22,21 +21,14 @@ type mqttSender struct {
 	topic  string
 }
 
-const clientID = "edgex"
-const topic = "EdgeX"
-
 // NewMqttSender - create new mqtt sender
 func NewMqttSender(addr export.Addressable) Sender {
-	// ClientId needs to be unique for each connection, otherwise the broker can
-	// close previous connection with the same id
-	clientStr := clientID + "_" + uuid.NewV4().String()
-
 	opts := MQTT.NewClientOptions()
 	// CHN: Should be added protocol from Addressable instead of include it the address param.
 	// CHN: We will maintain this behaviour for compatibility with Java
 	broker := addr.Address + ":" + strconv.Itoa(addr.Port)
 	opts.AddBroker(broker)
-	opts.SetClientID(clientStr)
+	opts.SetClientID(addr.Publisher)
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
 	opts.SetAutoReconnect(false)
