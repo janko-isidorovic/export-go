@@ -16,10 +16,11 @@ package distro
 //   registration channel)
 
 import (
+	"time"
+
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
-	"time"
 )
 
 func (reg *RegistrationInfo) update(newReg export.Registration) bool {
@@ -73,6 +74,17 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	if reg.format == nil || reg.sender == nil {
 		logger.Error("Registration not supported")
 		return false
+	}
+
+	reg.encrypt = nil
+	switch newReg.Encryption.Algo {
+	case export.EncNone:
+		reg.encrypt = nil
+	case export.EncAes:
+		reg.encrypt = NewAESEncryption(newReg.Encryption)
+	default:
+		logger.Info("Encryption not supported: ", zap.String("encription", newReg.Encryption.Algo))
+
 	}
 
 	reg.chRegistration = make(chan *RegistrationInfo)
