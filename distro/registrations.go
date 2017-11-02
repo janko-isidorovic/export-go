@@ -16,22 +16,11 @@ package distro
 //   registration channel)
 
 import (
-	"time"
-
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
+	"time"
 )
-
-// To be removed when any other formater is implemented
-type dummyFormat struct {
-}
-
-func (dummy dummyFormat) Format(event *export.Event) []byte {
-	return []byte("dummy")
-}
-
-var dummy dummyFormat
 
 func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	reg.registration = newReg
@@ -39,11 +28,9 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	reg.format = nil
 	switch newReg.Format {
 	case export.FormatJSON:
-		// TODO reg.format = distro.NewJsonFormat()
-		reg.format = dummy
+		reg.format = jsonFormater{}
 	case export.FormatXML:
-		// TODO reg.format = distro.NewXmlFormat()
-		reg.format = dummy
+		reg.format = xmlFormater{}
 	case export.FormatSerialized:
 		// TODO reg.format = distro.NewSerializedFormat()
 	case export.FormatIoTCoreJSON:
@@ -101,9 +88,8 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 
 	// TODO Value filtering
 
-	logger.Info("Event: ", zap.String("device", event.Device))
-
 	formated := reg.format.Format(event)
+
 	compressed := formated
 	if reg.compression != nil {
 		compressed = reg.compression.Transform(formated)
