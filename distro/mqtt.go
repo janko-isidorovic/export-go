@@ -9,6 +9,7 @@
 package distro
 
 import (
+	"math/rand"
 	"strconv"
 
 	"github.com/drasko/edgex-export"
@@ -26,17 +27,19 @@ const topic = "EdgeX"
 
 // NewMqttSender - create new mqtt sender
 func NewMqttSender(addr export.Addressable) Sender {
+	clientStr := clientID + "_" + strconv.FormatInt(rand.Int63(), 16)
+
 	opts := MQTT.NewClientOptions()
 	// CHN: Should be added protocol from Addressable instead of include it the address param.
 	// CHN: We will maintain this behaviour for compatibility with Java
 	broker := addr.Address + ":" + strconv.Itoa(addr.Port)
 	opts.AddBroker(broker)
-	opts.SetClientID(clientID)
+	opts.SetClientID(clientStr)
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
 	opts.SetAutoReconnect(false)
 
-	sender := mqttSender{
+	sender := &mqttSender{
 		client: MQTT.NewClient(opts),
 		topic:  addr.Topic,
 	}
@@ -44,7 +47,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data []byte) {
+func (sender *mqttSender) Send(data []byte) {
 	if !sender.client.IsConnected() {
 		logger.Info("Connecting to mqtt server")
 		if token := sender.client.Connect(); token.Wait() && token.Error() != nil {
