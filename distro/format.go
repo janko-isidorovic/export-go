@@ -8,6 +8,7 @@ package distro
 
 import (
 	"encoding/json"
+	"encoding/xml"
 
 	"github.com/drasko/edgex-export"
 	"go.uber.org/zap"
@@ -27,9 +28,13 @@ func (jsonTr jsonFormater) Format(event *export.Event) []byte {
 }
 
 type xmlFormater struct {
-	xml []string
 }
 
 func (xmlTr xmlFormater) Format(event *export.Event) []byte {
-	return []byte("dummy")
+	b, err := xml.Marshal(event)
+	if err != nil {
+		logger.Error("Error parsing XML", zap.Error(err))
+		return nil
+	}
+	return b
 }
