@@ -22,6 +22,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var registrationChanges chan bool = make(chan bool, 2)
+
 func newRegistrationInfo() *RegistrationInfo {
 	reg := &RegistrationInfo{}
 
@@ -201,10 +203,9 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 			logger.Info("exit msg", zap.Error(e))
 			return
 
-			// case <-time.After(2 * time.Second):
-			// 	// kill all running registrations not in the new list
-			// 	logger.Info("Registration changes")
-			// 	updateRunningRegistrations(registrations, getRegistrations(repo))
+		case <-registrationChanges:
+			logger.Info("Registration changes")
+			updateRunningRegistrations(registrations, getRegistrations(repo))
 
 		case <-time.After(time.Second):
 			// Simulate receiving events
