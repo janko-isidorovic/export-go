@@ -11,7 +11,6 @@ package distro
 // TODO:
 // - Filtering by id and value
 // - Receive events from 0mq until a new message broker/rpc is chosen
-// - Implement json/xml/.... serializers
 // - Event buffer management per sender(do not block distro.Loop on full
 //   registration channel)
 
@@ -83,7 +82,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.EncAes:
 		reg.encrypt = NewAESEncryption(newReg.Encryption)
 	default:
-		logger.Info("Encryption not supported: ", zap.String("encription", newReg.Encryption.Algo))
+		logger.Info("Encryption not supported: ", zap.String("Algorithm", newReg.Encryption.Algo))
 
 	}
 

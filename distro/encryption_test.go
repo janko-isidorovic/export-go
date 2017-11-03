@@ -11,7 +11,6 @@ import (
 	"crypto/cipher"
 	"crypto/sha1"
 	"encoding/base64"
-
 	"testing"
 
 	"github.com/drasko/edgex-export"
@@ -32,7 +31,7 @@ func aesDecrypt(crypt []byte, key []byte) []byte {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic("key error1")
+		panic("key error")
 	}
 
 	ecb := cipher.NewCBCDecrypter(block, []byte(iv[:16]))
