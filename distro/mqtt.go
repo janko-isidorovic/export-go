@@ -21,9 +21,6 @@ type mqttSender struct {
 	topic  string
 }
 
-const clientID = "edgex"
-const topic = "EdgeX"
-
 // NewMqttSender - create new mqtt sender
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
@@ -31,12 +28,12 @@ func NewMqttSender(addr export.Addressable) Sender {
 	// CHN: We will maintain this behaviour for compatibility with Java
 	broker := addr.Address + ":" + strconv.Itoa(addr.Port)
 	opts.AddBroker(broker)
-	opts.SetClientID(clientID)
+	opts.SetClientID(addr.Publisher)
 	opts.SetUsername(addr.User)
 	opts.SetPassword(addr.Password)
 	opts.SetAutoReconnect(false)
 
-	sender := mqttSender{
+	sender := &mqttSender{
 		client: MQTT.NewClient(opts),
 		topic:  addr.Topic,
 	}
@@ -44,7 +41,7 @@ func NewMqttSender(addr export.Addressable) Sender {
 	return sender
 }
 
-func (sender mqttSender) Send(data []byte) {
+func (sender *mqttSender) Send(data []byte) {
 	if !sender.client.IsConnected() {
 		logger.Info("Connecting to mqtt server")
 		if token := sender.client.Connect(); token.Wait() && token.Error() != nil {
