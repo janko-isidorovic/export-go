@@ -24,6 +24,11 @@ import (
 
 var registrationChanges chan bool = make(chan bool, 2)
 
+func RefreshRegistrations() {
+	// TODO make it not blocking, return bool?
+	registrationChanges <- true
+}
+
 func newRegistrationInfo() *RegistrationInfo {
 	reg := &RegistrationInfo{}
 

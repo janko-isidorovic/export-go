@@ -24,7 +24,7 @@ func replyUpdateRegistrations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/text; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, "")
-	registrationChanges <- true
+	RefreshRegistrations()
 }
 
 // HTTPServer function
