@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017
+// Mainflux
+// Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -23,7 +25,7 @@ import (
 )
 
 const (
-	port                   int    = 7070
+	port                   int    = 48071
 	defMongoURL            string = "0.0.0.0"
 	defMongoUsername       string = ""
 	defMongoPassword       string = ""
