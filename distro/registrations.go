@@ -145,10 +145,10 @@ func registrationLoop(reg *RegistrationInfo) {
 					logger.Info("Registration updated: OK",
 						zap.String("Name", reg.registration.Name))
 				} else {
-					logger.Info("Registration updated: KO",
+					logger.Info("Registration updated: KO, terminating goroutine",
 						zap.String("Name", reg.registration.Name))
-					// TODO Something went wrong, need to remove this from
-					// running registrations
+					reg.deleteMe = true
+					return
 				}
 			}
 		}
@@ -160,16 +160,23 @@ func updateRunningRegistrations(running map[string]*RegistrationInfo,
 
 	// kill all running registrations not in the new list
 	for k, v := range running {
-		toDelete := true
-		for i := range newRegistrations {
-			if v.registration.Name == newRegistrations[i].Name {
-				toDelete = false
-				break
-			}
-		}
-		if toDelete {
-			v.chRegistration <- nil
+		if v.deleteMe {
+			// If the registration does not have the goroutine running remove it
+			// from the running map and it will be created new
 			delete(running, k)
+		} else {
+			toDelete := true
+			for i := range newRegistrations {
+				if v.registration.Name == newRegistrations[i].Name {
+					toDelete = false
+					break
+				}
+			}
+			// Delete the registration if it isn't present in the new list
+			if toDelete {
+				v.chRegistration <- nil
+				delete(running, k)
+			}
 		}
 	}
 
@@ -201,8 +208,11 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		select {
 		case e := <-errChan:
 			// kill all registration goroutines
-			for k, v := range registrations {
-				v.chRegistration <- nil
+			for k, reg := range registrations {
+				if !reg.deleteMe {
+					// Do not write in channel that will not be read
+					reg.chRegistration <- nil
+				}
 				delete(registrations, k)
 			}
 			logger.Info("exit msg", zap.Error(e))
@@ -216,9 +226,13 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 			// Simulate receiving events
 			event := getNextEvent()
 
-			for r := range registrations {
-				// TODO only sent event if it is not blocking
-				registrations[r].chEvent <- event
+			for k, reg := range registrations {
+				if reg.deleteMe {
+					delete(registrations, k)
+				} else {
+					// TODO only sent event if it is not blocking
+					reg.chEvent <- event
+				}
 			}
 		}
 	}
