@@ -35,7 +35,7 @@ type RegistrationInfo struct {
 	encrypt      Transformer
 	sender       Sender
 
-	chRegistration chan *RegistrationInfo
+	chRegistration chan *export.Registration
 
 	chEvent chan *export.Event
 }
