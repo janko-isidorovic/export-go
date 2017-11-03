@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017
+// Mainflux
+// Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -8,14 +10,14 @@ package export
 
 // Encryption types
 const (
-	EncNone = iota
-	EncAes
+	EncNone = "NONE"
+	EncAes  = "AES"
 )
 
 // EncryptionDetails - Provides details for encryption
 // of export data per client request
 type EncryptionDetails struct {
-	Algo       int
+	Algo       string
 	Key        string
 	InitVector string
 }

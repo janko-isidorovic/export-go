@@ -75,6 +75,17 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 		return false
 	}
 
+	reg.encrypt = nil
+	switch newReg.Encryption.Algo {
+	case export.EncNone:
+		reg.encrypt = nil
+	case export.EncAes:
+		reg.encrypt = NewAESEncryption(newReg.Encryption)
+	default:
+		logger.Info("Encryption not supported: ", zap.String("Algorithm", newReg.Encryption.Algo))
+
+	}
+
 	reg.chRegistration = make(chan *RegistrationInfo)
 	reg.chEvent = make(chan *export.Event)
 
