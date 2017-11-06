@@ -13,9 +13,6 @@ into this repo (needed for linking and data isolation of microservices).
 
 Repo contains two microservices, `export-client` and `export-distro`.
 
-![edgy](https://lh6.googleusercontent.com/m4-1DvNQa1UwsOE4PK7TytR8is6eaVYEGVPwpeIl8EFjn2pgYGxQ0-AcjLFUJxF_UVHCORxPEiGCJs92pdJsxlK9M5T5_31-MHR3=w1920-h954)
-
-
 ## Install and Deploy
 
 Currently only `export-client` is functional.
