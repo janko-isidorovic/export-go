@@ -21,6 +21,7 @@ const (
 	plainString = "This is the test string used for testing"
 	iv          = "123456789012345678901234567890"
 	key         = "aquqweoruqwpeoruqwpoeruqwpoierupqoweiurpoqwiuerpqowieurqpowieurpoqiweuroipwqure"
+	blockSize   = 16
 )
 
 func aesDecrypt(crypt []byte, aesData export.EncryptionDetails) []byte {
@@ -28,9 +29,9 @@ func aesDecrypt(crypt []byte, aesData export.EncryptionDetails) []byte {
 
 	hash.Write([]byte((aesData.Key)))
 	key := hash.Sum(nil)
-	key = key[:16]
+	key = key[:blockSize]
 
-	iv := make([]byte, 16)
+	iv := make([]byte, blockSize)
 	copy(iv, []byte(aesData.InitVector))
 
 	block, err := aes.NewCipher(key)
