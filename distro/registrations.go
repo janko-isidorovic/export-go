@@ -22,6 +22,21 @@ import (
 	"go.uber.org/zap"
 )
 
+var registrationChanges chan bool = make(chan bool, 2)
+
+func RefreshRegistrations() {
+	// TODO make it not blocking, return bool?
+	registrationChanges <- true
+}
+
+func newRegistrationInfo() *RegistrationInfo {
+	reg := &RegistrationInfo{}
+
+	reg.chRegistration = make(chan *export.Registration)
+	reg.chEvent = make(chan *export.Event)
+	return reg
+}
+
 func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	reg.registration = newReg
 
@@ -86,9 +101,6 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
-	reg.chRegistration = make(chan *RegistrationInfo)
-	reg.chEvent = make(chan *export.Event)
-
 	return true
 }
 
@@ -111,10 +123,13 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
 	reg.sender.Send(encrypted)
+	logger.Debug("Sent event with registration:",
+		zap.String("Name", reg.registration.Name))
 }
 
-func registrationLoop(reg RegistrationInfo) {
-	logger.Info("registration loop started")
+func registrationLoop(reg *RegistrationInfo) {
+	logger.Info("registration loop started",
+		zap.String("Name", reg.registration.Name))
 	for {
 		select {
 		case event := <-reg.chEvent:
@@ -122,10 +137,59 @@ func registrationLoop(reg RegistrationInfo) {
 
 		case newReg := <-reg.chRegistration:
 			if newReg == nil {
-				logger.Info("Terminate registration goroutine")
+				logger.Info("Terminating registration goroutine")
+				return
 			} else {
-				// TODO implement updating the registration info.
-				logger.Info("Registration updated")
+				if reg.update(*newReg) {
+					logger.Info("Registration updated: OK",
+						zap.String("Name", reg.registration.Name))
+				} else {
+					logger.Info("Registration updated: KO, terminating goroutine",
+						zap.String("Name", reg.registration.Name))
+					reg.deleteMe = true
+					return
+				}
+			}
+		}
+	}
+}
+
+func updateRunningRegistrations(running map[string]*RegistrationInfo,
+	newRegistrations []export.Registration) {
+
+	// kill all running registrations not in the new list
+	for k, v := range running {
+		if v.deleteMe {
+			// If the registration does not have the goroutine running remove it
+			// from the running map and it will be created new
+			delete(running, k)
+		} else {
+			toDelete := true
+			for i := range newRegistrations {
+				if v.registration.Name == newRegistrations[i].Name {
+					toDelete = false
+					break
+				}
+			}
+			// Delete the registration if it isn't present in the new list
+			if toDelete {
+				v.chRegistration <- nil
+				delete(running, k)
+			}
+		}
+	}
+
+	// Create or update registrations in the new list
+	for i := range newRegistrations {
+		v, found := running[newRegistrations[i].Name]
+		if found {
+			v.chRegistration <- &newRegistrations[i]
+		} else {
+			// Create new goroutine for this registration
+			reg := newRegistrationInfo()
+			if reg.update(newRegistrations[i]) {
+				running[reg.registration.Name] = reg
+				go registrationLoop(reg)
 			}
 		}
 	}
@@ -134,37 +198,42 @@ func registrationLoop(reg RegistrationInfo) {
 // Loop - registration loop
 func Loop(repo *mongo.Repository, errChan chan error) {
 
-	var registrations []RegistrationInfo
+	registrations := make(map[string]*RegistrationInfo)
 
-	sourceReg := getRegistrations(repo)
-
-	for i := range sourceReg {
-		var reg RegistrationInfo
-		if reg.update(sourceReg[i]) {
-			registrations = append(registrations, reg)
-			go registrationLoop(reg)
-		}
-	}
+	updateRunningRegistrations(registrations, getRegistrations(repo))
 
 	logger.Info("Starting registration loop")
 	for {
 		select {
 		case e := <-errChan:
 			// kill all registration goroutines
-			for r := range registrations {
-				registrations[r].chRegistration <- nil
+			for k, reg := range registrations {
+				if !reg.deleteMe {
+					// Do not write in channel that will not be read
+					reg.chRegistration <- nil
+				}
+				delete(registrations, k)
 			}
 			logger.Info("exit msg", zap.Error(e))
 			return
 
+		case <-registrationChanges:
+			logger.Info("Registration changes")
+			updateRunningRegistrations(registrations, getRegistrations(repo))
+
 		case <-time.After(time.Second):
 			// Simulate receiving events
 			event := getNextEvent()
-			logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
 
-			for r := range registrations {
-				// TODO only sent event if it is not blocking
-				registrations[r].chEvent <- event
+      logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
+
+			for k, reg := range registrations {
+				if reg.deleteMe {
+					delete(registrations, k)
+				} else {
+					// TODO only sent event if it is not blocking
+					reg.chEvent <- event
+				}
 			}
 		}
 	}
