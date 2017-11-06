@@ -1,5 +1,7 @@
 //
-// Copyright (c) 2017 Mainflux
+// Copyright (c) 2017
+// Mainflux
+// Cavium
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -174,6 +176,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	notifyUpdatedRegistrations()
 }
 
 func updateReg(w http.ResponseWriter, r *http.Request) {
@@ -208,6 +211,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	notifyUpdatedRegistrations()
 }
 
 func delRegByID(w http.ResponseWriter, r *http.Request) {
@@ -225,6 +229,7 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	notifyUpdatedRegistrations()
 }
 
 func delRegByName(w http.ResponseWriter, r *http.Request) {
@@ -242,4 +247,12 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	notifyUpdatedRegistrations()
+}
+
+func notifyUpdatedRegistrations() {
+	go func() {
+		// TODO make configurable distro host/port
+		http.Get("http://127.0.0.1:48070/api/v1/notify/registrations")
+	}()
 }
