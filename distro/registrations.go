@@ -86,6 +86,16 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
+	reg.filter = nil
+	if len(newReg.Filter.DeviceIDs) > 0 {
+		reg.filter = NewDeviceIDFilter(newReg.Filter.DeviceIDs)
+	}
+
+	/*	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
+			reg.filter = NewValueDescFilter(newReg.Filter.ValueDescriptorIDs)
+		}
+	*/
+
 	reg.chRegistration = make(chan *RegistrationInfo)
 	reg.chEvent = make(chan *export.Event)
 
@@ -96,7 +106,14 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
 	// TODO Device filtering
+	if reg.filter != nil {
+		filtered := reg.filter.Filter(event)
+		logger.Info("Event filtered")
 
+		if !filtered {
+			return
+		}
+	}
 	// TODO Value filtering
 
 	formated := reg.format.Format(event)
@@ -110,6 +127,8 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	if reg.encrypt != nil {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
+
+	logger.Info("Event: ", zap.Any("event", event))
 	reg.sender.Send(encrypted)
 }
 
@@ -142,6 +161,7 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		var reg RegistrationInfo
 		if reg.update(sourceReg[i]) {
 			registrations = append(registrations, reg)
+			//logger.Info("Registration: ", zap.Any("reg", registrations), zap.Int("length", len(registrations)))
 			go registrationLoop(reg)
 		}
 	}
@@ -153,6 +173,7 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 			// kill all registration goroutines
 			for r := range registrations {
 				registrations[r].chRegistration <- nil
+
 			}
 			logger.Info("exit msg", zap.Error(e))
 			return
@@ -160,7 +181,7 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		case <-time.After(time.Second):
 			// Simulate receiving events
 			event := getNextEvent()
-			logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
+			//logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
 
 			for r := range registrations {
 				// TODO only sent event if it is not blocking
