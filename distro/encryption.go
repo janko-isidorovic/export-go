@@ -22,6 +22,11 @@ type aesEncryption struct {
 	iv  string
 }
 
+// IV and KEY must be 16 bytes
+const (
+	blockSize = 16
+)
+
 func NewAESEncryption(encData export.EncryptionDetails) Transformer {
 	aesData := aesEncryption{
 		key: encData.Key,
@@ -37,14 +42,14 @@ func pkcs5Padding(ciphertext []byte, blockSize int) []byte {
 }
 
 func (aesData aesEncryption) Transform(data []byte) []byte {
-	iv := make([]byte, 16)
+	iv := make([]byte, blockSize)
 	copy(iv, []byte(aesData.iv))
 
 	hash := sha1.New()
 
 	hash.Write([]byte((aesData.key)))
 	key := hash.Sum(nil)
-	key = key[:16]
+	key = key[:blockSize]
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
