@@ -20,11 +20,19 @@ func replyPing(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, str)
 }
 
+func replyNotifyRegistrations(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/text; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, "")
+	RefreshRegistrations()
+}
+
 // HTTPServer function
 func HTTPServer() http.Handler {
 	mux := bone.New()
 
 	mux.Get("/api/v1/ping", http.HandlerFunc(replyPing))
+	mux.Get("/api/v1/notify/registrations", http.HandlerFunc(replyNotifyRegistrations))
 
 	return mux
 }
