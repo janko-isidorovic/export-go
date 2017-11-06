@@ -23,9 +23,7 @@ type aesEncryption struct {
 }
 
 // IV and KEY must be 16 bytes
-const (
-	blockSize = 16
-)
+const blockSize = 16
 
 func NewAESEncryption(encData export.EncryptionDetails) Transformer {
 	aesData := aesEncryption{
