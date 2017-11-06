@@ -91,10 +91,9 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 		reg.filter = NewDeviceIDFilter(newReg.Filter.DeviceIDs)
 	}
 
-	/*	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
-			reg.filter = NewValueDescFilter(newReg.Filter.ValueDescriptorIDs)
-		}
-	*/
+	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
+		reg.filter = NewValueDescFilter(newReg.Filter.ValueDescriptorIDs)
+	}
 
 	reg.chRegistration = make(chan *RegistrationInfo)
 	reg.chEvent = make(chan *export.Event)
@@ -114,7 +113,15 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 			return
 		}
 	}
-	// TODO Value filtering
+
+	if reg.filter != nil {
+		filtered := reg.filter.Filter(event)
+		logger.Info("Event filtered")
+
+		if !filtered {
+			return
+		}
+	}
 
 	formated := reg.format.Format(event)
 
