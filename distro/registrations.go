@@ -101,15 +101,22 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
+	reg.filter = applyFilters(newReg.Filter)
+
 	return true
 }
 
 func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
-	// TODO Device filtering
-
-	// TODO Value filtering
+	var filtered bool
+	if reg.filter != nil {
+		filtered, event = reg.filter.Filter(event)
+		logger.Info("Event filtered")
+		if !filtered {
+			return
+		}
+	}
 
 	formated := reg.format.Format(event)
 
@@ -122,8 +129,10 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	if reg.encrypt != nil {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
+
 	reg.sender.Send(encrypted)
-	logger.Debug("Sent event with registration:",
+	logger.Info("Sent event with registration:",
+		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }
 
@@ -224,8 +233,6 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		case <-time.After(time.Second):
 			// Simulate receiving events
 			event := getNextEvent()
-
-      logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
 
 			for k, reg := range registrations {
 				if reg.deleteMe {

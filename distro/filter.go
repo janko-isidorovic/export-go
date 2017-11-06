@@ -13,18 +13,48 @@ import (
 	"github.com/drasko/edgex-export"
 )
 
-/*
-type Filter struct {
-	DeviceIDs          []string `json:"deviceIdentifiers,omitempty"`
-	ValueDescriptorIDs []string `json:"valueDescriptorIdentifiers,omitempty"`
+type divIdFilterer struct {
+	deviceIDs []string
 }
 
+func NewDeviceIDFilter(deviceIDsExt []string) Filterer {
+	devIdFilt := divIdFilterer{
+		deviceIDs: deviceIDsExt,
+	}
+	return devIdFilt
+}
 
-*/
+func (devIdFilt divIdFilterer) Filter(event *export.Event) bool {
 
-func FilterbyDeviceID(event *export.Event) bool {
+	for i := range devIdFilt.deviceIDs {
+		if event.Device == devIdFilt.deviceIDs[i] {
+			fmt.Println("Filtering by Device id: ", devIdFilt)
+			return true
+		}
+	}
 
-	fmt.Println("Filterin by Device id")
+	return false
+}
 
-	return true
+type valueDescFilterer struct {
+	valueDesc []string
+}
+
+func NewValueDescFilter(valueDescExt []string) Filterer {
+	valueDescFilt := valueDescFilterer{
+		valueDesc: valueDescExt,
+	}
+	return valueDescFilt
+}
+
+func (valueDescFilt valueDescFilterer) Filter(event *export.Event) bool {
+
+	for i := range valueDescFilt.valueDesc {
+		if event.Device == valueDescFilt.valueDesc[i] {
+			fmt.Println("Filtering by value descriptor id: ", valueDescFilt)
+			return true
+		}
+	}
+
+	return false
 }
