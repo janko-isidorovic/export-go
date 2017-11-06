@@ -11,37 +11,43 @@ import (
 	"crypto/cipher"
 	"crypto/sha1"
 	"encoding/base64"
-	"testing"
 
 	"github.com/drasko/edgex-export"
+
+	"testing"
 )
 
 const (
 	plainString = "This is the test string used for testing"
 	iv          = "123456789012345678901234567890"
 	key         = "aquqweoruqwpeoruqwpoeruqwpoierupqoweiurpoqwiuerpqowieurqpowieurpoqiweuroipwqure"
+	blockSize   = 16
 )
 
-func aesDecrypt(crypt []byte, key []byte) []byte {
+func aesDecrypt(crypt []byte, aesData export.EncryptionDetails) []byte {
 	hash := sha1.New()
 
-	hash.Write([]byte((key)))
-	key = hash.Sum(nil)
-	key = key[:16]
+	hash.Write([]byte((aesData.Key)))
+	key := hash.Sum(nil)
+	key = key[:blockSize]
+
+	iv := make([]byte, blockSize)
+	copy(iv, []byte(aesData.InitVector))
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic("key error")
 	}
 
-	ecb := cipher.NewCBCDecrypter(block, []byte(iv[:16]))
-	decrypted := make([]byte, len(crypt))
-	ecb.CryptBlocks(decrypted, crypt)
+	decodedData, _ := base64.StdEncoding.DecodeString(string(crypt))
+
+	ecb := cipher.NewCBCDecrypter(block, []byte(iv))
+	decrypted := make([]byte, len(decodedData))
+	ecb.CryptBlocks(decrypted, decodedData)
 
 	trimmed := pkcs5Trimming(decrypted)
-	decodedData, _ := base64.StdEncoding.DecodeString(string(trimmed))
 
-	return decodedData
+	return trimmed
 }
 
 func pkcs5Trimming(encrypt []byte) []byte {
@@ -61,9 +67,9 @@ func TestAES(t *testing.T) {
 
 	cphrd := enc.Transform([]byte(plainString))
 
-	decphrd := aesDecrypt(cphrd, []byte(aesData.Key))
+	decphrd := aesDecrypt(cphrd, aesData)
 
 	if string(plainString) != string(decphrd) {
-		t.Fatal("Encoded string ", cphrd, " is not ", decphrd)
+		t.Fatal("Encoded string ", string(plainString), " is not ", string(decphrd))
 	}
 }

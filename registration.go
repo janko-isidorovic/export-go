@@ -6,6 +6,10 @@
 
 package export
 
+import (
+	"gopkg.in/mgo.v2/bson"
+)
+
 // Compression algorithm types
 const (
 	CompNone = "NONE"
@@ -35,7 +39,7 @@ const (
 // Registration - Defines the registration details
 // on the part of north side export clients
 type Registration struct {
-	ID          string            `json:"_id,omitempty"`
+	ID          bson.ObjectId     `bson:"_id,omitempty" json:"_id,omitempty"`
 	Created     int64             `json:"created,omitempty"`
 	Modified    int64             `json:"modified,omitempty"`
 	Origin      int64             `json:"origin,omitempty"`

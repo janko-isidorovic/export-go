@@ -122,7 +122,6 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	if reg.encrypt != nil {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
-
 	reg.sender.Send(encrypted)
 	logger.Debug("Sent event with registration:",
 		zap.String("Name", reg.registration.Name))
@@ -225,6 +224,8 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		case <-time.After(time.Second):
 			// Simulate receiving events
 			event := getNextEvent()
+
+      logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
 
 			for k, reg := range registrations {
 				if reg.deleteMe {
