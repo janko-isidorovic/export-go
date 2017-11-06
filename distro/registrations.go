@@ -110,7 +110,6 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	if reg.encrypt != nil {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
-
 	reg.sender.Send(encrypted)
 }
 
@@ -161,7 +160,7 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		case <-time.After(time.Second):
 			// Simulate receiving events
 			event := getNextEvent()
-			logger.Info("Event: ", zap.Int("length", len(registrations)))
+			logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
 
 			for r := range registrations {
 				// TODO only sent event if it is not blocking

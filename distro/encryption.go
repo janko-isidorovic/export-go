@@ -19,13 +19,13 @@ import (
 
 type aesEncryption struct {
 	key string
-	iv  []byte
+	iv  string
 }
 
 func NewAESEncryption(encData export.EncryptionDetails) Transformer {
 	aesData := aesEncryption{
 		key: encData.Key,
-		iv:  []byte(encData.InitVector[:16]),
+		iv:  encData.InitVector,
 	}
 	return aesData
 }
@@ -37,6 +37,8 @@ func pkcs5Padding(ciphertext []byte, blockSize int) []byte {
 }
 
 func (aesData aesEncryption) Transform(data []byte) []byte {
+	iv := make([]byte, 16)
+	copy(iv, []byte(aesData.iv))
 
 	hash := sha1.New()
 
@@ -50,12 +52,12 @@ func (aesData aesEncryption) Transform(data []byte) []byte {
 		return nil
 	}
 
-	encodedData := []byte(base64.StdEncoding.EncodeToString(data))
-
-	ecb := cipher.NewCBCEncrypter(block, aesData.iv[:16])
-	content := pkcs5Padding(encodedData, block.BlockSize())
+	ecb := cipher.NewCBCEncrypter(block, iv)
+	content := pkcs5Padding(data, block.BlockSize())
 	crypted := make([]byte, len(content))
 	ecb.CryptBlocks(crypted, content)
 
-	return crypted
+	encodedData := []byte(base64.StdEncoding.EncodeToString(crypted))
+
+	return encodedData
 }
