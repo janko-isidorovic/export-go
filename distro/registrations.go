@@ -101,17 +101,10 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
-	reg.filter = nil
-	if len(newReg.Filter.DeviceIDs) > 0 {
-		reg.filter = NewDeviceIDFilter(newReg.Filter.DeviceIDs)
-	}
-
-	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
-		reg.filter = NewValueDescFilter(newReg.Filter.ValueDescriptorIDs)
-	}
-
-	reg.chRegistration = make(chan *RegistrationInfo)
-	reg.chEvent = make(chan *export.Event)
+	//reg.filter = nil
+	//if newReg.Filter != export.Filter{}) {
+	reg.filter = applyFilters(newReg.Filter)
+	//}
 
 	return true
 }
@@ -119,19 +112,10 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
+	var filtered bool
 	if reg.filter != nil {
-		filtered := reg.filter.Filter(event)
+		filtered, event = reg.filter.Filter(event)
 		logger.Info("Event filtered")
-
-		if !filtered {
-			return
-		}
-	}
-
-	if reg.filter != nil {
-		filtered := reg.filter.Filter(event)
-		logger.Info("Event filtered")
-
 		if !filtered {
 			return
 		}
@@ -150,7 +134,8 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	}
 
 	reg.sender.Send(encrypted)
-	logger.Debug("Sent event with registration:",
+	logger.Info("Sent event with registration:",
+		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }
 
