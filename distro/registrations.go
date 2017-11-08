@@ -101,7 +101,17 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
-	reg.filter = append(reg.filter, applyFilters(newReg.Filter))
+	reg.filter = nil
+
+	if len(newReg.Filter.DeviceIDs) > 0 {
+		reg.filter = append(reg.filter, newDevIdFilter(newReg.Filter))
+		logger.Info("Device ID filter added: ", zap.Any("filters", newReg.Filter.DeviceIDs))
+	}
+
+	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
+		reg.filter = append(reg.filter, newValueDescFilter(newReg.Filter))
+		logger.Info("Value descriptor filter added: ", zap.Any("filters", newReg.Filter.ValueDescriptorIDs))
+	}
 
 	return true
 }
@@ -113,8 +123,8 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	if reg.filter != nil {
 		for i := range reg.filter {
 			filtered, event = reg.filter[i].Filter(event)
-			logger.Info("Event filtered")
 			if !filtered {
+				logger.Info("Event filtered")
 				return
 			}
 		}

@@ -8,51 +8,50 @@ package distro
 
 import (
 	"github.com/drasko/edgex-export"
+	"go.uber.org/zap"
 )
 
-type filterDetails struct {
+type devIdFilterDetails struct {
 	deviceIDs []string
-	valueDesc []string
 }
 
-func applyFilters(filter export.Filter) Filterer {
-	filterer := filterDetails{}
+func newDevIdFilter(filter export.Filter) Filterer {
 
-	if len(filter.DeviceIDs) > 0 {
-		filterer.deviceIDs = filter.DeviceIDs
+	filterer := devIdFilterDetails{
+		deviceIDs: filter.DeviceIDs,
 	}
-
-	if len(filter.ValueDescriptorIDs) > 0 {
-		filterer.valueDesc = filter.ValueDescriptorIDs
-	}
-
 	return filterer
 }
 
-func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
+func (filter devIdFilterDetails) Filter(event *export.Event) (bool, *export.Event) {
 
 	if filter.deviceIDs != nil {
-		auxEvent := &export.Event{}
-
 		for i := range filter.deviceIDs {
 			if event.Device == filter.deviceIDs[i] {
-				_, auxEvent = filterByValueDescriptor(filter, event)
-				return true, auxEvent
+				logger.Debug("Event filtered", zap.Any("Event", event))
+				return true, event
 			}
 		}
-		return false, auxEvent
+		return false, event
 	}
 
-	return filterByValueDescriptor(filter, event)
+	return false, event
 }
 
-type valueDescFilterer struct {
-	valueDesc []string
+type valueDescFilterDetails struct {
+	valueDescIDs []string
 }
 
-func filterByValueDescriptor(filter filterDetails, event *export.Event) (bool, *export.Event) {
+func newValueDescFilter(filter export.Filter) Filterer {
+	filterer := valueDescFilterDetails{
+		valueDescIDs: filter.ValueDescriptorIDs,
+	}
+	return filterer
+}
 
-	if filter.valueDesc != nil {
+func (filter valueDescFilterDetails) Filter(event *export.Event) (bool, *export.Event) {
+
+	if filter.valueDescIDs != nil {
 
 		auxEvent := &export.Event{
 			Pushed:   event.Pushed,
@@ -63,9 +62,10 @@ func filterByValueDescriptor(filter filterDetails, event *export.Event) (bool, *
 			Readings: []export.Reading{},
 		}
 
-		for i := range filter.valueDesc {
+		for i := range filter.valueDescIDs {
 			for j := range event.Readings {
-				if event.Readings[j].Name == filter.valueDesc[i] {
+				if event.Readings[j].Name == filter.valueDescIDs[i] {
+					logger.Debug("Reading filtered", zap.Any("Reading", event.Readings[j]))
 					auxEvent.Readings = append(auxEvent.Readings, event.Readings[j])
 				}
 			}
