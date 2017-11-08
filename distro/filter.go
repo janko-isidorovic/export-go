@@ -41,14 +41,23 @@ func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
 		for i := range filter.deviceIDs {
 			if event.Device == filter.deviceIDs[i] {
 				fmt.Println("Filtering by Device id: ", filter)
+
+				_, auxEvent = filterByValueDescriptor(filter, event)
 				return true, auxEvent
 			}
 		}
-
 		return false, auxEvent
 	}
 
+	return filterByValueDescriptor(filter, event)
+
+}
+
+func filterByValueDescriptor(filter filterDetails, event *export.Event) (bool, *export.Event) {
+	auxEvent := &export.Event{}
+
 	if filter.valueDesc != nil {
+
 		fmt.Println("lens: ", len(filter.valueDesc), " lens ", len(event.Readings))
 		auxEvent = &export.Event{
 			Pushed:   event.Pushed,
@@ -58,11 +67,7 @@ func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
 			Origin:   event.Origin,
 			Readings: []export.Reading{},
 		}
-		/*
-			fmt.Println("---------------------------------------------------")
-			fmt.Println(auxEvent)
-			fmt.Println("---------------------------------------------------")
-		*/
+
 		for i := range filter.valueDesc {
 			for j := range event.Readings {
 				if event.Readings[j].Name == filter.valueDesc[i] {
@@ -72,12 +77,8 @@ func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
 				}
 			}
 		}
-
-		/*	fmt.Println("---------------------------------------------------")
-			fmt.Println(auxEvent)
-			fmt.Println("---------------------------------------------------")
-		*/
 		return true, auxEvent
 	}
-	return false, auxEvent
+	// Return the event as is
+	return false, event
 }

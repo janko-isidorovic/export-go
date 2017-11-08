@@ -101,10 +101,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
-	//reg.filter = nil
-	//if newReg.Filter != export.Filter{}) {
 	reg.filter = applyFilters(newReg.Filter)
-	//}
 
 	return true
 }
