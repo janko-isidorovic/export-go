@@ -101,15 +101,32 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
+	reg.filter = nil
+
+	if len(newReg.Filter.DeviceIDs) > 0 {
+		reg.filter = append(reg.filter, newDevIdFilter(newReg.Filter))
+		logger.Info("Device ID filter added: ", zap.Any("filters", newReg.Filter.DeviceIDs))
+	}
+
+	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
+		reg.filter = append(reg.filter, newValueDescFilter(newReg.Filter))
+		logger.Info("Value descriptor filter added: ", zap.Any("filters", newReg.Filter.ValueDescriptorIDs))
+	}
+
 	return true
 }
 
 func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
-	// TODO Device filtering
-
-	// TODO Value filtering
+	var filtered bool
+	for i := range reg.filter {
+		filtered, event = reg.filter[i].Filter(event)
+		if !filtered {
+			logger.Info("Event filtered")
+			return
+		}
+	}
 
 	formated := reg.format.Format(event)
 
@@ -122,8 +139,10 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	if reg.encrypt != nil {
 		encrypted = reg.encrypt.Transform(compressed)
 	}
+
 	reg.sender.Send(encrypted)
-	logger.Debug("Sent event with registration:",
+	logger.Info("Sent event with registration:",
+		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }
 
@@ -224,8 +243,6 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 		case <-time.After(time.Second):
 			// Simulate receiving events
 			event := getNextEvent()
-
-      logger.Info("Event: ", zap.Any("event", event), zap.Int("length", len(registrations)))
 
 			for k, reg := range registrations {
 				if reg.deleteMe {

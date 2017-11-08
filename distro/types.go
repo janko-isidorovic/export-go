@@ -27,6 +27,11 @@ type Transformer interface {
 	Transform(data []byte) []byte
 }
 
+// Filter - Filter interface
+type Filterer interface {
+	Filter(event *export.Event) (bool, *export.Event)
+}
+
 // RegistrationInfo - registration info
 type RegistrationInfo struct {
 	registration export.Registration
@@ -34,6 +39,7 @@ type RegistrationInfo struct {
 	compression  Transformer
 	encrypt      Transformer
 	sender       Sender
+	filter       []Filterer
 
 	chRegistration chan *export.Registration
 	chEvent        chan *export.Event

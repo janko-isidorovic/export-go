@@ -8,6 +8,6 @@ package export
 
 // Filter - Specifies the client filters on reading data
 type Filter struct {
-	DeviceIDs          []string
-	ValueDescriptorIDs []string
+	DeviceIDs          []string `bson:"deviceIdentifiers,omitempty" json:"deviceIdentifiers,omitempty"`
+	ValueDescriptorIDs []string `bson:"valueDescriptorIdentifiers,omitempty" json:"valueDescriptorIdentifiers,omitempty"`
 }
