@@ -131,7 +131,7 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	}
 
 	reg.sender.Send(encrypted)
-	logger.Info("Sent event with registration:",
+	logger.Debug("Sent event with registration:",
 		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }
