@@ -32,7 +32,7 @@ func HTTPServer() http.Handler {
 	mux := bone.New()
 
 	mux.Get("/api/v1/ping", http.HandlerFunc(replyPing))
-	mux.Get("/api/v1/notify/registrations", http.HandlerFunc(replyNotifyRegistrations))
+	mux.Put("/api/v1/notify/registrations", http.HandlerFunc(replyNotifyRegistrations))
 
 	return mux
 }
