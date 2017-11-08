@@ -253,6 +253,15 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 func notifyUpdatedRegistrations() {
 	go func() {
 		// TODO make configurable distro host/port
-		http.Get("http://127.0.0.1:48070/api/v1/notify/registrations")
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodPut, "http://127.0.0.1:48070/api/v1/notify/registrations", nil)
+		if err != nil {
+			logger.Info("Error creating http request")
+			return
+		}
+		_, err = client.Do(req)
+		if err != nil {
+			logger.Info("Error notifying updated registrations to distro")
+		}
 	}()
 }
