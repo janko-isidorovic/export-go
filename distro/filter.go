@@ -13,48 +13,74 @@ import (
 	"github.com/drasko/edgex-export"
 )
 
-type divIdFilterer struct {
+type filterDetails struct {
 	deviceIDs []string
+	valueDesc []string
 }
 
-func NewDeviceIDFilter(deviceIDsExt []string) Filterer {
-	devIdFilt := divIdFilterer{
-		deviceIDs: deviceIDsExt,
+func applyFilters(filter export.Filter) Filterer {
+	filterer := filterDetails{}
+
+	if len(filter.DeviceIDs) > 0 {
+		filterer.deviceIDs = filter.DeviceIDs
 	}
-	return devIdFilt
+
+	if len(filter.ValueDescriptorIDs) > 0 {
+		filterer.valueDesc = filter.ValueDescriptorIDs
+	}
+
+	return filterer
 }
 
-func (devIdFilt divIdFilterer) Filter(event *export.Event) bool {
+func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
 
-	for i := range devIdFilt.deviceIDs {
-		if event.Device == devIdFilt.deviceIDs[i] {
-			fmt.Println("Filtering by Device id: ", devIdFilt)
-			return true
+	auxEvent := &export.Event{}
+
+	if filter.deviceIDs != nil {
+
+		for i := range filter.deviceIDs {
+			if event.Device == filter.deviceIDs[i] {
+				fmt.Println("Filtering by Device id: ", filter)
+
+				_, auxEvent = filterByValueDescriptor(filter, event)
+				return true, auxEvent
+			}
 		}
+		return false, auxEvent
 	}
 
-	return false
-}
+	return filterByValueDescriptor(filter, event)
 
 type valueDescFilterer struct {
 	valueDesc []string
 }
 
-func NewValueDescFilter(valueDescExt []string) Filterer {
-	valueDescFilt := valueDescFilterer{
-		valueDesc: valueDescExt,
-	}
-	return valueDescFilt
-}
+func filterByValueDescriptor(filter filterDetails, event *export.Event) (bool, *export.Event) {
+	auxEvent := &export.Event{}
 
-func (valueDescFilt valueDescFilterer) Filter(event *export.Event) bool {
+	if filter.valueDesc != nil {
 
-	for i := range valueDescFilt.valueDesc {
-		if event.Device == valueDescFilt.valueDesc[i] {
-			fmt.Println("Filtering by value descriptor id: ", valueDescFilt)
-			return true
+		fmt.Println("lens: ", len(filter.valueDesc), " lens ", len(event.Readings))
+		auxEvent = &export.Event{
+			Pushed:   event.Pushed,
+			Device:   event.Device,
+			Created:  event.Created,
+			Modified: event.Modified,
+			Origin:   event.Origin,
+			Readings: []export.Reading{},
 		}
-	}
 
-	return false
+		for i := range filter.valueDesc {
+			for j := range event.Readings {
+				if event.Readings[j].Name == filter.valueDesc[i] {
+					fmt.Println("Filtering by value descriptor id: ", filter.valueDesc[i])
+					fmt.Println("Reading ", j)
+					auxEvent.Readings = append(auxEvent.Readings, event.Readings[j])
+				}
+			}
+		}
+		return true, auxEvent
+	}
+	// Return the event as is
+	return false, event
 }

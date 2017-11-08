@@ -29,7 +29,7 @@ type Transformer interface {
 
 // Filter - Filter interface
 type Filterer interface {
-	Filter(event *export.Event) bool
+	Filter(event *export.Event) (bool, *export.Event)
 }
 
 // RegistrationInfo - registration info
