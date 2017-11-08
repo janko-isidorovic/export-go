@@ -7,7 +7,6 @@
 package distro
 
 import (
-	//"encoding/json"
 	"fmt"
 
 	"github.com/drasko/edgex-export"
@@ -50,6 +49,7 @@ func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
 	}
 
 	return filterByValueDescriptor(filter, event)
+}
 
 type valueDescFilterer struct {
 	valueDesc []string
