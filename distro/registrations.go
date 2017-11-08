@@ -120,13 +120,11 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
 	var filtered bool
-	if reg.filter != nil {
-		for i := range reg.filter {
-			filtered, event = reg.filter[i].Filter(event)
-			if !filtered {
-				logger.Info("Event filtered")
-				return
-			}
+	for i := range reg.filter {
+		filtered, event = reg.filter[i].Filter(event)
+		if !filtered {
+			logger.Info("Event filtered")
+			return
 		}
 	}
 
@@ -143,7 +141,7 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	}
 
 	reg.sender.Send(encrypted)
-	logger.Debug("Sent event with registration:",
+	logger.Info("Sent event with registration:",
 		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }
