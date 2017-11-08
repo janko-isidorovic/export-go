@@ -12,8 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//const sampleEvent string = `{"pushed":0,"device":"GS1-AC-Drive01","readings":[{"pushed":0,"name":"HoldingRegister_8455","value":"287.27","device":"GS1-AC-Drive01","id":"59f70666e4b0e3fab1d4232e","created":1509361254069,"modified":1509361254069,"origin":1509361254001}],"id":"59f70666e4b0e3fab1d4232f","created":1509361254072,"modified":1509361254072,"origin":1509361254001}`
-
 const sampleEvent string = `{"pushed":0,"device":"livingroomthermostat",
 	"readings":[
 	{"pushed":0,"name":"temperature","value":"72","id":"57ed24f0502fdf73bb637915","created":1475159280744,"modified":1475159280744,"origin":1471806386919},
