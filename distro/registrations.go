@@ -101,7 +101,7 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 
 	}
 
-	reg.filter = applyFilters(newReg.Filter)
+	reg.filter = append(reg.filter, applyFilters(newReg.Filter))
 
 	return true
 }
@@ -111,10 +111,12 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 
 	var filtered bool
 	if reg.filter != nil {
-		filtered, event = reg.filter.Filter(event)
-		logger.Info("Event filtered")
-		if !filtered {
-			return
+		for i := range reg.filter {
+			filtered, event = reg.filter[i].Filter(event)
+			logger.Info("Event filtered")
+			if !filtered {
+				return
+			}
 		}
 	}
 
@@ -131,7 +133,7 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	}
 
 	reg.sender.Send(encrypted)
-	logger.Debug("Sent event with registration:",
+	logger.Info("Sent event with registration:",
 		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }

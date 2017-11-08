@@ -39,7 +39,7 @@ type RegistrationInfo struct {
 	compression  Transformer
 	encrypt      Transformer
 	sender       Sender
-	filter       Filterer
+	filter       []Filterer
 
 	chRegistration chan *export.Registration
 	chEvent        chan *export.Event

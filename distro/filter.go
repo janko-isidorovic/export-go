@@ -31,9 +31,8 @@ func applyFilters(filter export.Filter) Filterer {
 
 func (filter filterDetails) Filter(event *export.Event) (bool, *export.Event) {
 
-	auxEvent := &export.Event{}
-
 	if filter.deviceIDs != nil {
+		auxEvent := &export.Event{}
 
 		for i := range filter.deviceIDs {
 			if event.Device == filter.deviceIDs[i] {
@@ -52,11 +51,10 @@ type valueDescFilterer struct {
 }
 
 func filterByValueDescriptor(filter filterDetails, event *export.Event) (bool, *export.Event) {
-	auxEvent := &export.Event{}
 
 	if filter.valueDesc != nil {
 
-		auxEvent = &export.Event{
+		auxEvent := &export.Event{
 			Pushed:   event.Pushed,
 			Device:   event.Device,
 			Created:  event.Created,
