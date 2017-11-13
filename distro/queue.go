@@ -21,8 +21,12 @@ const sampleEvent string = `{"pushed":0,"device":"livingroomthermostat",
 	"id":"57ed24f0502fdf73bb637917","created":1475159280762,"modified":1475159280762,"origin":1471806386919}`
 
 func getNextEvent() *export.Event {
+	return parseEvent(sampleEvent)
+}
+
+func parseEvent(str string) *export.Event {
 	event := export.Event{}
-	if err := json.Unmarshal([]byte(sampleEvent), &event); err != nil {
+	if err := json.Unmarshal([]byte(str), &event); err != nil {
 		logger.Error("Failed to query add registration", zap.Error(err))
 		return nil
 	}
