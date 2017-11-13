@@ -16,7 +16,6 @@ func initZmq() {
 
 	for {
 		msg, err := q.RecvMessage(0)
-		logger.Info("Received zmq msg")
 		if err != nil {
 			id, _ := q.GetIdentity()
 			logger.Error("Error getting mesage", zap.String("id", id))
