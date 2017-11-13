@@ -1,11 +1,16 @@
 package distro
 
 import (
+	"github.com/drasko/edgex-export"
 	zmq "github.com/pebbe/zmq4"
 	"go.uber.org/zap"
 )
 
-func initZmq() {
+func ZeroMQReceiver(eventCh chan *export.Event) {
+	go initZmq(eventCh)
+}
+
+func initZmq(eventCh chan *export.Event) {
 	q, _ := zmq.NewSocket(zmq.SUB)
 	defer q.Close()
 
@@ -23,7 +28,8 @@ func initZmq() {
 			for _, str := range msg {
 				// Why the offset of 7?? zmq v3 vs v4 ?
 				event := parseEvent(str[7:])
-				logger.Debug("Event received", zap.Any("event", event))
+				logger.Info("Event received", zap.Any("event", event))
+				eventCh <- event
 			}
 		}
 	}
