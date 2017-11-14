@@ -13,12 +13,19 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/mongo"
 	"github.com/go-zoo/bone"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2/bson"
+)
+
+const (
+	// TODO this consts need to be configurable somehow
+	distroHost     = "127.0.0.1"
+	distroPort int = 48070
 )
 
 func getRegByID(w http.ResponseWriter, r *http.Request) {
@@ -254,14 +261,16 @@ func notifyUpdatedRegistrations() {
 	go func() {
 		// TODO make configurable distro host/port
 		client := &http.Client{}
-		req, err := http.NewRequest(http.MethodPut, "http://127.0.0.1:48070/api/v1/notify/registrations", nil)
+		url := "http://" + distroHost + ":" + strconv.Itoa(distroPort) +
+			"/api/v1/notify/registrations"
+		req, err := http.NewRequest(http.MethodPut, url, nil)
 		if err != nil {
 			logger.Error("Error creating http request")
 			return
 		}
 		_, err = client.Do(req)
 		if err != nil {
-			logger.Error("Error notifying updated registrations to distro")
+			logger.Error("Error notifying updated registrations to distro", zap.String("url", url))
 		}
 	}()
 }
