@@ -52,3 +52,14 @@ type Registration struct {
 	Enable      bool              `json:"enable,omitempty"`
 	Destination string            `json:"destination,omitempty"`
 }
+
+const (
+	NotifyUpdateAdd    = "add"
+	NotifyUpdateUpdate = "update"
+	NotifyUpdateDelete = "delete"
+)
+
+type NotifyUpdate struct {
+	Name      string `json:"name"`
+	Operation string `json:"operation"`
+}

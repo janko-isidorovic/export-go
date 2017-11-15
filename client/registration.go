@@ -11,7 +11,6 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -185,7 +184,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	notifyUpdatedRegistrations(reg.Name, "add")
+	notifyUpdatedRegistrations(export.NotifyUpdate{reg.Name, "add"})
 }
 
 func updateReg(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +219,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations(name.(string), "update")
+	notifyUpdatedRegistrations(export.NotifyUpdate{name.(string), "update"})
 }
 
 func delRegByID(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +237,7 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations("TODO", "delete")
+	notifyUpdatedRegistrations(export.NotifyUpdate{"TODO", "delete"})
 }
 
 func delRegByName(w http.ResponseWriter, r *http.Request) {
@@ -256,16 +255,22 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations(name, "delete")
+	notifyUpdatedRegistrations(export.NotifyUpdate{name, "delete"})
 }
 
-func notifyUpdatedRegistrations(name string, operation string) {
+func notifyUpdatedRegistrations(update export.NotifyUpdate) {
 	go func() {
 		// TODO make configurable distro host/port
 		client := &http.Client{}
 		url := "http://" + distroHost + ":" + strconv.Itoa(distroPort) +
 			"/api/v1/notify/registrations"
-		data := fmt.Sprintf("{\"name\":\"%s\", \"operation\":\"%s\"}", name, operation)
+
+		data, err := json.Marshal(update)
+		if err != nil {
+			logger.Error("Error generating update json", zap.Error(err))
+			return
+		}
+
 		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer([]byte(data)))
 		if err != nil {
 			logger.Error("Error creating http request")

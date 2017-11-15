@@ -12,20 +12,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/drasko/edgex-export"
 	"github.com/go-zoo/bone"
 	"go.uber.org/zap"
 )
-
-const (
-	notifyUpdateAdd    = "add"
-	notifyUpdateUpdate = "update"
-	notifyUpdateDelete = "delete"
-)
-
-type notifyUpdate struct {
-	Name      string `json:"name"`
-	Operation string `json:"operation"`
-}
 
 func replyPing(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/text; charset=utf-8")
@@ -43,7 +33,7 @@ func replyNotifyRegistrations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	update := notifyUpdate{}
+	update := export.NotifyUpdate{}
 	if err := json.Unmarshal(data, &update); err != nil {
 		logger.Error("Failed to parse")
 		w.WriteHeader(http.StatusBadRequest)
@@ -55,9 +45,9 @@ func replyNotifyRegistrations(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if update.Operation != notifyUpdateAdd &&
-		update.Operation != notifyUpdateUpdate &&
-		update.Operation != notifyUpdateDelete {
+	if update.Operation != export.NotifyUpdateAdd &&
+		update.Operation != export.NotifyUpdateUpdate &&
+		update.Operation != export.NotifyUpdateDelete {
 		logger.Error("Invalid value for operation",
 			zap.String("operation", update.Operation))
 		w.WriteHeader(http.StatusBadRequest)

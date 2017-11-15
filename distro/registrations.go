@@ -21,9 +21,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var registrationChanges chan notifyUpdate = make(chan notifyUpdate, 2)
+var registrationChanges chan export.NotifyUpdate = make(chan export.NotifyUpdate, 2)
 
-func RefreshRegistrations(update notifyUpdate) {
+func RefreshRegistrations(update export.NotifyUpdate) {
 	// TODO make it not blocking, return bool?
 	registrationChanges <- update
 }
@@ -173,10 +173,10 @@ func registrationLoop(reg *RegistrationInfo) {
 }
 
 func updateRunningRegistrations(running map[string]*RegistrationInfo,
-	update notifyUpdate) {
+	update export.NotifyUpdate) {
 
 	switch update.Operation {
-	case notifyUpdateDelete:
+	case export.NotifyUpdateDelete:
 		for k, v := range running {
 			if k == update.Name {
 				v.chRegistration <- nil
@@ -185,7 +185,7 @@ func updateRunningRegistrations(running map[string]*RegistrationInfo,
 			}
 		}
 		logger.Warn("delete update not processed")
-	case notifyUpdateUpdate:
+	case export.NotifyUpdateUpdate:
 		reg := getRegistrationByName(update.Name)
 		if reg == nil {
 			logger.Error("Could not find registration", zap.String("name", update.Name))
@@ -198,7 +198,7 @@ func updateRunningRegistrations(running map[string]*RegistrationInfo,
 			}
 		}
 		logger.Error("Could not find running registration", zap.String("name", update.Name))
-	case notifyUpdateAdd:
+	case export.NotifyUpdateAdd:
 		reg := getRegistrationByName(update.Name)
 		if reg == nil {
 			logger.Error("Could not find registration", zap.String("name", update.Name))
