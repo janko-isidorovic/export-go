@@ -229,6 +229,16 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	defer s.Close()
 	c := s.DB(mongo.DBName).C(mongo.CollectionName)
 
+	// Read the registration from mongo, the registration name is needed to
+	// notify distro of the deletion
+	reg := export.Registration{}
+	if err := c.Find(bson.M{"id": id}).One(&reg); err != nil {
+		logger.Error("Failed to query by id", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
+		return
+	}
+
 	if err := c.Remove(bson.M{"id": id}); err != nil {
 		logger.Error("Failed to query by id", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -237,7 +247,7 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations(export.NotifyUpdate{"TODO", "delete"})
+	notifyUpdatedRegistrations(export.NotifyUpdate{reg.Name, "delete"})
 }
 
 func delRegByName(w http.ResponseWriter, r *http.Request) {
