@@ -18,15 +18,14 @@ import (
 	"time"
 
 	"github.com/drasko/edgex-export"
-	"github.com/drasko/edgex-export/mongo"
 	"go.uber.org/zap"
 )
 
-var registrationChanges chan bool = make(chan bool, 2)
+var registrationChanges chan notifyUpdate = make(chan notifyUpdate, 2)
 
-func RefreshRegistrations() {
+func RefreshRegistrations(update notifyUpdate) {
 	// TODO make it not blocking, return bool?
-	registrationChanges <- true
+	registrationChanges <- update
 }
 
 func newRegistrationInfo() *RegistrationInfo {
@@ -141,7 +140,7 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 	}
 
 	reg.sender.Send(encrypted)
-	logger.Info("Sent event with registration:",
+	logger.Debug("Sent event with registration:",
 		zap.Any("Event", event),
 		zap.String("Name", reg.registration.Name))
 }
@@ -174,52 +173,60 @@ func registrationLoop(reg *RegistrationInfo) {
 }
 
 func updateRunningRegistrations(running map[string]*RegistrationInfo,
-	newRegistrations []export.Registration) {
+	update notifyUpdate) {
 
-	// kill all running registrations not in the new list
-	for k, v := range running {
-		if v.deleteMe {
-			// If the registration does not have the goroutine running remove it
-			// from the running map and it will be created new
-			delete(running, k)
-		} else {
-			toDelete := true
-			for i := range newRegistrations {
-				if v.registration.Name == newRegistrations[i].Name {
-					toDelete = false
-					break
-				}
-			}
-			// Delete the registration if it isn't present in the new list
-			if toDelete {
+	switch update.Operation {
+	case notifyUpdateDelete:
+		for k, v := range running {
+			if k == update.Name {
 				v.chRegistration <- nil
 				delete(running, k)
+				return
 			}
 		}
-	}
-
-	// Create or update registrations in the new list
-	for i := range newRegistrations {
-		v, found := running[newRegistrations[i].Name]
-		if found {
-			v.chRegistration <- &newRegistrations[i]
-		} else {
-			// Create new goroutine for this registration
-			reg := newRegistrationInfo()
-			if reg.update(newRegistrations[i]) {
-				running[reg.registration.Name] = reg
-				go registrationLoop(reg)
+		logger.Warn("delete update not processed")
+	case notifyUpdateUpdate:
+		reg := getRegistrationByName(update.Name)
+		if reg == nil {
+			logger.Error("Could not find registration", zap.String("name", update.Name))
+			return
+		}
+		for k, v := range running {
+			if k == update.Name {
+				v.chRegistration <- reg
+				return
 			}
 		}
+		logger.Error("Could not find running registration", zap.String("name", update.Name))
+	case notifyUpdateAdd:
+		reg := getRegistrationByName(update.Name)
+		if reg == nil {
+			logger.Error("Could not find registration", zap.String("name", update.Name))
+			return
+		}
+		regInfo := newRegistrationInfo()
+		if regInfo.update(*reg) {
+			running[reg.Name] = regInfo
+			go registrationLoop(regInfo)
+		}
+	default:
+		logger.Error("Invalid update operation", zap.String("operation", update.Operation))
 	}
 }
 
 // Loop - registration loop
-func Loop(repo *mongo.Repository, errChan chan error) {
+func Loop(errChan chan error) {
 
 	registrations := make(map[string]*RegistrationInfo)
 
-	updateRunningRegistrations(registrations, getRegistrations(repo))
+	// Create new goroutines for each registration
+	for _, reg := range getRegistrations() {
+		regInfo := newRegistrationInfo()
+		if regInfo.update(reg) {
+			registrations[reg.Name] = regInfo
+			go registrationLoop(regInfo)
+		}
+	}
 
 	logger.Info("Starting registration loop")
 	for {
@@ -236,9 +243,9 @@ func Loop(repo *mongo.Repository, errChan chan error) {
 			logger.Info("exit msg", zap.Error(e))
 			return
 
-		case <-registrationChanges:
+		case update := <-registrationChanges:
 			logger.Info("Registration changes")
-			updateRunningRegistrations(registrations, getRegistrations(repo))
+			updateRunningRegistrations(registrations, update)
 
 		case <-time.After(time.Second):
 			// Simulate receiving events

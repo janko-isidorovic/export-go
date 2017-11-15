@@ -83,7 +83,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	distro.Loop(repo, errs)
+	distro.Loop(errs)
 
 	logger.Info("terminated")
 }

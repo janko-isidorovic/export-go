@@ -13,6 +13,7 @@ import (
 	"github.com/drasko/edgex-export/mongo"
 
 	"go.uber.org/zap"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var repo *mongo.Repository
@@ -23,7 +24,7 @@ func InitMongoRepository(r *mongo.Repository) {
 	return
 }
 
-func getRegistrations(repo *mongo.Repository) []export.Registration {
+func getRegistrations() []export.Registration {
 
 	s := repo.Session.Copy()
 	defer s.Close()
@@ -38,4 +39,19 @@ func getRegistrations(repo *mongo.Repository) []export.Registration {
 	}
 
 	return results
+}
+
+func getRegistrationByName(name string) *export.Registration {
+	s := repo.Session.Copy()
+	defer s.Close()
+
+	c := s.DB(mongo.DBName).C(mongo.CollectionName)
+
+	reg := export.Registration{}
+	if err := c.Find(bson.M{"name": name}).One(&reg); err != nil {
+		logger.Error("Failed to get registration by name", zap.Error(err))
+		return nil
+	}
+
+	return &reg
 }

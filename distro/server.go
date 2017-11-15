@@ -7,11 +7,25 @@
 package distro
 
 import (
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/go-zoo/bone"
+	"go.uber.org/zap"
 )
+
+const (
+	notifyUpdateAdd    = "add"
+	notifyUpdateUpdate = "update"
+	notifyUpdateDelete = "delete"
+)
+
+type notifyUpdate struct {
+	Name      string `json:"name"`
+	Operation string `json:"operation"`
+}
 
 func replyPing(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/text; charset=utf-8")
@@ -21,10 +35,37 @@ func replyPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func replyNotifyRegistrations(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/text; charset=utf-8")
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		logger.Error("Failed read body", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, err.Error())
+		return
+	}
+
+	update := notifyUpdate{}
+	if err := json.Unmarshal(data, &update); err != nil {
+		logger.Error("Failed to parse")
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, err.Error())
+		return
+	}
+	if update.Name == "" || update.Operation == "" {
+		logger.Error("Missing json field", zap.Any("update", update))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if update.Operation != notifyUpdateAdd &&
+		update.Operation != notifyUpdateUpdate &&
+		update.Operation != notifyUpdateDelete {
+		logger.Error("Invalid value for operation",
+			zap.String("operation", update.Operation))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, "")
-	RefreshRegistrations()
+	RefreshRegistrations(update)
 }
 
 // HTTPServer function

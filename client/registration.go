@@ -9,7 +9,9 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -183,7 +185,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(reg.Name, "add")
 }
 
 func updateReg(w http.ResponseWriter, r *http.Request) {
@@ -218,7 +220,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(name.(string), "update")
 }
 
 func delRegByID(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +238,7 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations("TODO", "delete")
 }
 
 func delRegByName(w http.ResponseWriter, r *http.Request) {
@@ -254,16 +256,17 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(name, "delete")
 }
 
-func notifyUpdatedRegistrations() {
+func notifyUpdatedRegistrations(name string, operation string) {
 	go func() {
 		// TODO make configurable distro host/port
 		client := &http.Client{}
 		url := "http://" + distroHost + ":" + strconv.Itoa(distroPort) +
 			"/api/v1/notify/registrations"
-		req, err := http.NewRequest(http.MethodPut, url, nil)
+		data := fmt.Sprintf("{\"name\":\"%s\", \"operation\":\"%s\"}", name, operation)
+		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer([]byte(data)))
 		if err != nil {
 			logger.Error("Error creating http request")
 			return
