@@ -66,14 +66,14 @@ func getRegList(w http.ResponseWriter, r *http.Request) {
 
 	switch t {
 	case "algorithms":
-		l = `["None","Aes"]`
+		l = `["` + export.EncNone + `"," ` + export.EncAes + `"]`
 	case "compressions":
-		l = `["None","Gzip","Zip"]`
+		l = `["` + export.CompNone + `","` + export.CompGzip + `","` +
+			export.CompZip + `"]`
 	case "formats":
-		l = `["JSON","XML","Serialized","IotCoreJSON","AzureJSON","CSV"]`
+		l = `["` + export.FormatJSON + `","` + export.FormatXML + `"]`
 	case "destinations":
-		l = `["DestMQTT", "TeDestZMQller", "DestIotCoreMQTT,
-			"DestAzureMQTT", "DestRest"]`
+		l = `["` + export.DestMQTT + `", "` + export.DestRest + `"]`
 	default:
 		logger.Error("Unknown type: " + t)
 		w.WriteHeader(http.StatusBadRequest)
