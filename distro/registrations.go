@@ -218,8 +218,21 @@ func Loop(errChan chan error) {
 
 	registrations := make(map[string]*RegistrationInfo)
 
+	allRegs := getRegistrations()
+
+	for allRegs == nil {
+		logger.Info("Waiting for client microservice")
+		select {
+		case e := <-errChan:
+			logger.Info("exit msg", zap.Error(e))
+			return
+		case <-time.After(time.Second):
+		}
+		allRegs = getRegistrations()
+	}
+
 	// Create new goroutines for each registration
-	for _, reg := range getRegistrations() {
+	for _, reg := range allRegs {
 		regInfo := newRegistrationInfo()
 		if regInfo.update(reg) {
 			registrations[reg.Name] = regInfo
