@@ -62,18 +62,22 @@ func getRegList(w http.ResponseWriter, r *http.Request) {
 
 	t := bone.GetValue(r, "type")
 
-	var l string
+	var list []string
 
 	switch t {
 	case "algorithms":
-		l = `["None","Aes"]`
+		list = append(list, export.EncNone)
+		list = append(list, export.EncAes)
 	case "compressions":
-		l = `["None","Gzip","Zip"]`
+		list = append(list, export.CompNone)
+		list = append(list, export.CompGzip)
+		list = append(list, export.CompZip)
 	case "formats":
-		l = `["JSON","XML","Serialized","IotCoreJSON","AzureJSON","CSV"]`
+		list = append(list, export.FormatJSON)
+		list = append(list, export.FormatXML)
 	case "destinations":
-		l = `["DestMQTT", "TeDestZMQller", "DestIotCoreMQTT,
-			"DestAzureMQTT", "DestRest"]`
+		list = append(list, export.DestMQTT)
+		list = append(list, export.DestRest)
 	default:
 		logger.Error("Unknown type: " + t)
 		w.WriteHeader(http.StatusBadRequest)
@@ -81,8 +85,16 @@ func getRegList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res, err := json.Marshal(list)
+	if err != nil {
+		logger.Error("Failed to generate json", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, l)
+	io.WriteString(w, string(res))
 }
 
 func getAllReg(w http.ResponseWriter, r *http.Request) {
