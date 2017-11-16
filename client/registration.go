@@ -9,6 +9,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -195,7 +196,7 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(export.NotifyUpdate{reg.Name, "add"})
 }
 
 func updateReg(w http.ResponseWriter, r *http.Request) {
@@ -230,7 +231,7 @@ func updateReg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(export.NotifyUpdate{name.(string), "update"})
 }
 
 func delRegByID(w http.ResponseWriter, r *http.Request) {
@@ -240,6 +241,16 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	defer s.Close()
 	c := s.DB(mongo.DBName).C(mongo.CollectionName)
 
+	// Read the registration from mongo, the registration name is needed to
+	// notify distro of the deletion
+	reg := export.Registration{}
+	if err := c.Find(bson.M{"id": id}).One(&reg); err != nil {
+		logger.Error("Failed to query by id", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
+		return
+	}
+
 	if err := c.Remove(bson.M{"id": id}); err != nil {
 		logger.Error("Failed to query by id", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -248,7 +259,7 @@ func delRegByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(export.NotifyUpdate{reg.Name, "delete"})
 }
 
 func delRegByName(w http.ResponseWriter, r *http.Request) {
@@ -266,16 +277,23 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	notifyUpdatedRegistrations()
+	notifyUpdatedRegistrations(export.NotifyUpdate{name, "delete"})
 }
 
-func notifyUpdatedRegistrations() {
+func notifyUpdatedRegistrations(update export.NotifyUpdate) {
 	go func() {
 		// TODO make configurable distro host/port
 		client := &http.Client{}
 		url := "http://" + distroHost + ":" + strconv.Itoa(distroPort) +
 			"/api/v1/notify/registrations"
-		req, err := http.NewRequest(http.MethodPut, url, nil)
+
+		data, err := json.Marshal(update)
+		if err != nil {
+			logger.Error("Error generating update json", zap.Error(err))
+			return
+		}
+
+		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer([]byte(data)))
 		if err != nil {
 			logger.Error("Error creating http request")
 			return
