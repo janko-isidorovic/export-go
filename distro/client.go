@@ -28,14 +28,14 @@ func getRegistrations() []export.Registration {
 
 	response, err := http.Get(url)
 	if err != nil {
-		logger.Error("Error getting all registrations", zap.String("url", url))
+		logger.Warn("Error getting all registrations", zap.String("url", url))
 		return nil
 	}
 	defer response.Body.Close()
 
 	results := []export.Registration{}
 	if err := json.NewDecoder(response.Body).Decode(&results); err != nil {
-		logger.Error("Could not parse json", zap.Error(err))
+		logger.Warn("Could not parse json", zap.Error(err))
 	}
 
 	return results
