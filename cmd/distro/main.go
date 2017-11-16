@@ -13,15 +13,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
-	"time"
 
 	"github.com/drasko/edgex-export/distro"
-	"github.com/drasko/edgex-export/mongo"
 
 	"go.uber.org/zap"
-	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -58,16 +54,6 @@ func main() {
 
 	logger.Info("Starting distro")
 	cfg := loadConfig()
-
-	ms, err := connectToMongo(cfg)
-	if err != nil {
-		logger.Error("Failed to connect to Mongo.", zap.Error(err))
-		return
-	}
-	defer ms.Close()
-
-	repo := mongo.NewRepository(ms)
-	distro.InitMongoRepository(repo)
 
 	errs := make(chan error, 2)
 
@@ -109,25 +95,4 @@ func env(key, fallback string) string {
 	}
 
 	return value
-}
-
-func connectToMongo(cfg *config) (*mgo.Session, error) {
-	mongoDBDialInfo := &mgo.DialInfo{
-		Addrs:    []string{cfg.MongoURL + ":" + strconv.Itoa(cfg.MongoPort)},
-		Timeout:  time.Duration(cfg.MongoConnectTimeout) * time.Millisecond,
-		Database: cfg.MongoDatabase,
-		Username: cfg.MongoUser,
-		Password: cfg.MongoPass,
-	}
-
-	ms, err := mgo.DialWithInfo(mongoDBDialInfo)
-	if err != nil {
-		logger.Error("Failed to connect to Mongo.", zap.Error(err))
-		return nil, err
-	}
-
-	ms.SetSocketTimeout(time.Duration(cfg.MongoSocketTimeout) * time.Millisecond)
-	ms.SetMode(mgo.Monotonic, true)
-
-	return ms, nil
 }

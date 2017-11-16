@@ -35,7 +35,7 @@ func replyNotifyRegistrations(w http.ResponseWriter, r *http.Request) {
 
 	update := export.NotifyUpdate{}
 	if err := json.Unmarshal(data, &update); err != nil {
-		logger.Error("Failed to parse")
+		logger.Error("Failed to parse", zap.ByteString("json", data))
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, err.Error())
 		return

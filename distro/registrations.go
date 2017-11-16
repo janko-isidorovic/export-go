@@ -9,7 +9,6 @@
 package distro
 
 // TODO:
-// - Filtering by id and value
 // - Receive events from 0mq until a new message broker/rpc is chosen
 // - Event buffer management per sender(do not block distro.Loop on full
 //   registration channel)
