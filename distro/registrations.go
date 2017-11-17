@@ -13,6 +13,8 @@ package distro
 //   registration channel)
 
 import (
+	"time"
+
 	"github.com/drasko/edgex-export"
 	"go.uber.org/zap"
 )
