@@ -9,7 +9,6 @@
 package distro
 
 // TODO:
-// - Filtering by id and value
 // - Receive events from 0mq until a new message broker/rpc is chosen
 // - Event buffer management per sender(do not block distro.Loop on full
 //   registration channel)
@@ -219,8 +218,21 @@ func Loop(errChan chan error) {
 
 	registrations := make(map[string]*RegistrationInfo)
 
+	allRegs := getRegistrations()
+
+	for allRegs == nil {
+		logger.Info("Waiting for client microservice")
+		select {
+		case e := <-errChan:
+			logger.Info("exit msg", zap.Error(e))
+			return
+		case <-time.After(time.Second):
+		}
+		allRegs = getRegistrations()
+	}
+
 	// Create new goroutines for each registration
-	for _, reg := range getRegistrations() {
+	for _, reg := range allRegs {
 		regInfo := newRegistrationInfo()
 		if regInfo.update(reg) {
 			registrations[reg.Name] = regInfo
