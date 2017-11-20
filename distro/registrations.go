@@ -268,19 +268,6 @@ func Loop(errChan chan error, eventCh chan *export.Event) {
 					reg.chEvent <- event
 				}
 			}
-
-			// case <-time.After(time.Second):
-			// 	// Simulate receiving events
-			// 	event := getNextEvent()
-
-			// 	for k, reg := range registrations {
-			// 		if reg.deleteMe {
-			// 			delete(registrations, k)
-			// 		} else {
-			// 			// TODO only sent event if it is not blocking
-			// 			reg.chEvent <- event
-			// 		}
-			// 	}
 		}
 	}
 }

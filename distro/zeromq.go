@@ -1,6 +1,16 @@
+//
+// Copyright (c) 2017 Cavium
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// +build zeromq
+
 package distro
 
 import (
+	"encoding/json"
+
 	"github.com/drasko/edgex-export"
 	zmq "github.com/pebbe/zmq4"
 	"go.uber.org/zap"
@@ -26,11 +36,26 @@ func initZmq(eventCh chan *export.Event) {
 			logger.Error("Error getting mesage", zap.String("id", id))
 		} else {
 			for _, str := range msg {
-				// Why the offset of 7?? zmq v3 vs v4 ?
-				event := parseEvent(str[7:])
+				event := parseEvent(str)
 				logger.Info("Event received", zap.Any("event", event))
 				eventCh <- event
 			}
 		}
 	}
+}
+
+func parseEvent(str string) *export.Event {
+	event := export.Event{}
+
+	if err := json.Unmarshal([]byte(str), &event); err == nil {
+		return &event
+	}
+
+	// Why the offset of 7?? zmq v3 vs v4 ?
+	if err := json.Unmarshal([]byte(str[7:]), &event); err != nil {
+		logger.Error("Failed to parse event", zap.Error(err))
+		return nil
+	}
+
+	return &event
 }
