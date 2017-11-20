@@ -15,7 +15,7 @@ func initZmq(eventCh chan *export.Event) {
 	defer q.Close()
 
 	logger.Info("Connecting to zmq...")
-	q.Connect("tcp://localhost:32768")
+	q.Connect("tcp://localhost:5563")
 	logger.Info("Connected to zmq")
 	q.SetSubscribe("")
 
