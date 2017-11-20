@@ -33,11 +33,17 @@ func getRegistrations() []export.Registration {
 	}
 	defer response.Body.Close()
 
-	results := []export.Registration{}
-	if err := json.NewDecoder(response.Body).Decode(&results); err != nil {
+	registrations := []export.Registration{}
+	if err := json.NewDecoder(response.Body).Decode(&registrations); err != nil {
 		logger.Warn("Could not parse json", zap.Error(err))
 	}
 
+	results := registrations[:0]
+	for _, reg := range registrations {
+		if reg.Validate() {
+			results = append(results, reg)
+		}
+	}
 	return results
 }
 
@@ -55,7 +61,12 @@ func getRegistrationByName(name string) *export.Registration {
 	reg := export.Registration{}
 	if err := json.NewDecoder(response.Body).Decode(&reg); err != nil {
 		logger.Error("Could not parse json", zap.Error(err))
+		return nil
 	}
 
+	if !reg.Validate() {
+		logger.Error("Failed to validate registrations fields")
+		return nil
+	}
 	return &reg
 }
