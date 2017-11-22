@@ -25,7 +25,7 @@ func initZmq(eventCh chan *export.Event) {
 	defer q.Close()
 
 	logger.Info("Connecting to zmq...")
-	q.Connect("tcp://localhost:5563")
+	q.Connect("tcp://127.0.0.1:5563")
 	logger.Info("Connected to zmq")
 	q.SetSubscribe("")
 
@@ -47,15 +47,9 @@ func initZmq(eventCh chan *export.Event) {
 func parseEvent(str string) *export.Event {
 	event := export.Event{}
 
-	if err := json.Unmarshal([]byte(str), &event); err == nil {
-		return &event
-	}
-
-	// Why the offset of 7?? zmq v3 vs v4 ?
-	if err := json.Unmarshal([]byte(str[7:]), &event); err != nil {
+	if err := json.Unmarshal([]byte(str), &event); err != nil {
 		logger.Error("Failed to parse event", zap.Error(err))
 		return nil
 	}
-
 	return &event
 }
