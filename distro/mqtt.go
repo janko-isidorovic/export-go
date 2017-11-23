@@ -24,9 +24,7 @@ type mqttSender struct {
 // NewMqttSender - create new mqtt sender
 func NewMqttSender(addr export.Addressable) Sender {
 	opts := MQTT.NewClientOptions()
-	// CHN: Should be added protocol from Addressable instead of include it the address param.
-	// CHN: We will maintain this behaviour for compatibility with Java
-	broker := addr.Address + ":" + strconv.Itoa(addr.Port)
+	broker := "tcp://" + addr.Address + ":" + strconv.Itoa(addr.Port)
 	opts.AddBroker(broker)
 	opts.SetClientID(addr.Publisher)
 	opts.SetUsername(addr.User)
