@@ -63,3 +63,44 @@ type NotifyUpdate struct {
 	Name      string `json:"name"`
 	Operation string `json:"operation"`
 }
+
+func (reg *Registration) Validate() bool {
+
+	if reg.Compression == "" {
+		reg.Compression = CompNone
+	}
+
+	if reg.Compression != CompNone &&
+		reg.Compression != CompGzip &&
+		reg.Compression != CompZip {
+		return false
+	}
+
+	if reg.Format != FormatJSON &&
+		reg.Format != FormatXML &&
+		reg.Format != FormatSerialized &&
+		reg.Format != FormatIoTCoreJSON &&
+		reg.Format != FormatAzureJSON &&
+		reg.Format != FormatCSV {
+		return false
+	}
+
+	if reg.Destination != DestMQTT &&
+		reg.Destination != DestZMQ &&
+		reg.Destination != DestIotCoreMQTT &&
+		reg.Destination != DestAzureMQTT &&
+		reg.Destination != DestRest {
+		return false
+	}
+
+	if reg.Encryption.Algo == "" {
+		reg.Encryption.Algo = EncNone
+	}
+
+	if reg.Encryption.Algo != EncNone &&
+		reg.Encryption.Algo != EncAes {
+		return false
+	}
+
+	return true
+}

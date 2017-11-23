@@ -171,6 +171,13 @@ func addReg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !reg.Validate() {
+		logger.Error("Failed to validate registrations fields", zap.ByteString("data", data))
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, "Could not validate json fields")
+		return
+	}
+
 	s := repo.Session.Copy()
 	defer s.Close()
 	c := s.DB(mongo.DBName).C(mongo.CollectionName)
