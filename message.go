@@ -15,21 +15,21 @@ type Message struct {
 
 // Event - packet of Readings
 type Event struct {
-	Pushed   int64     `json:"pushed,omitempty"`
+	Pushed   int64     `json:"pushed"`
 	Device   string    `json:"device,omitempty"`
 	Readings []Reading `json:"readings,omitempty"`
-	Created  int64     `json:"created,omitempty"`
-	Modified int64     `json:"modified,omitempty"`
-	Origin   int64     `json:"origin,omitempty"`
+	Created  int64     `json:"created"`
+	Modified int64     `json:"modified"`
+	Origin   int64     `json:"origin"`
 }
 
 // Reading - Sensor measurement
 type Reading struct {
-	Pushed   int64  `json:"pushed,omitempty"`
+	Pushed   int64  `json:"pushed"`
 	Name     string `json:"name,omitempty"`
 	Value    string `json:"value,omitempty"`
 	Device   string `json:"device,omitempty"`
-	Created  int64  `json:"created,omitempty"`
-	Modified int64  `json:"modified,omitempty"`
-	Origin   int64  `json:"origin,omitempty"`
+	Created  int64  `json:"created"`
+	Modified int64  `json:"modified"`
+	Origin   int64  `json:"origin"`
 }
