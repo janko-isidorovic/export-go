@@ -10,10 +10,16 @@ package distro
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/drasko/edgex-export"
 	zmq "github.com/pebbe/zmq4"
 	"go.uber.org/zap"
+)
+
+const (
+	dataHost   = "127.0.0.1"
+	zeroMQPort = 5563
 )
 
 func ZeroMQReceiver(eventCh chan *export.Event) {
@@ -25,7 +31,8 @@ func initZmq(eventCh chan *export.Event) {
 	defer q.Close()
 
 	logger.Info("Connecting to zmq...")
-	q.Connect("tcp://127.0.0.1:5563")
+	url := fmt.Sprintf("tcp://%s:%d", dataHost, zeroMQPort)
+	q.Connect(url)
 	logger.Info("Connected to zmq")
 	q.SetSubscribe("")
 
