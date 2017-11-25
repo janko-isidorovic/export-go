@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/drasko/edgex-export"
 	"github.com/drasko/edgex-export/distro"
 
 	"go.uber.org/zap"
@@ -56,6 +57,7 @@ func main() {
 	cfg := loadConfig()
 
 	errs := make(chan error, 2)
+	eventCh := make(chan *export.Event, 10)
 
 	go func() {
 		p := fmt.Sprintf(":%d", cfg.Port)
@@ -69,7 +71,10 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	distro.Loop(errs)
+	// There can be another receivers that can be initialiced here
+	distro.ZeroMQReceiver(eventCh)
+
+	distro.Loop(errs, eventCh)
 
 	logger.Info("terminated")
 }

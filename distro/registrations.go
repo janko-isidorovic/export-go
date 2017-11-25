@@ -9,7 +9,6 @@
 package distro
 
 // TODO:
-// - Receive events from 0mq until a new message broker/rpc is chosen
 // - Event buffer management per sender(do not block distro.Loop on full
 //   registration channel)
 
@@ -214,7 +213,7 @@ func updateRunningRegistrations(running map[string]*RegistrationInfo,
 }
 
 // Loop - registration loop
-func Loop(errChan chan error) {
+func Loop(errChan chan error, eventCh chan *export.Event) {
 
 	registrations := make(map[string]*RegistrationInfo)
 
@@ -259,10 +258,8 @@ func Loop(errChan chan error) {
 			logger.Info("Registration changes")
 			updateRunningRegistrations(registrations, update)
 
-		case <-time.After(time.Second):
-			// Simulate receiving events
-			event := getNextEvent()
-
+		case event := <-eventCh:
+			logger.Info("EVENT")
 			for k, reg := range registrations {
 				if reg.deleteMe {
 					delete(registrations, k)
