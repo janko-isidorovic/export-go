@@ -12,6 +12,12 @@ import (
 	"github.com/drasko/edgex-export"
 )
 
+const (
+	DefaultPort       = 48070
+	DefaultClientHost = "127.0.0.1"
+	DefaultDataHost   = "127.0.0.1"
+)
+
 // Sender - Send interface
 type Sender interface {
 	Send(data []byte)
@@ -46,3 +52,11 @@ type RegistrationInfo struct {
 
 	deleteMe bool
 }
+
+type Config struct {
+	Port       int
+	ClientHost string
+	DataHost   string
+}
+
+var cfg Config
