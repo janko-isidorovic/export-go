@@ -17,14 +17,16 @@ import (
 )
 
 const (
-	// TODO this consts need to be configurable somehow
-	clientHost     = "127.0.0.1"
 	clientPort int = 48071
 )
 
-func getRegistrations() []export.Registration {
-	url := "http://" + clientHost + ":" + strconv.Itoa(clientPort) +
+func getRegistrationURL(host string) string {
+	return "http://" + host + ":" + strconv.Itoa(clientPort) +
 		"/api/v1/registration"
+}
+
+func getRegistrations() []export.Registration {
+	url := getRegistrationURL(cfg.ClientHost)
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -48,8 +50,7 @@ func getRegistrations() []export.Registration {
 }
 
 func getRegistrationByName(name string) *export.Registration {
-	url := "http://" + clientHost + ":" + strconv.Itoa(clientPort) +
-		"/api/v1/registration/name/" + name
+	url := getRegistrationURL(cfg.ClientHost) + "/name/" + name
 
 	response, err := http.Get(url)
 	if err != nil {

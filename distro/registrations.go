@@ -13,6 +13,8 @@ package distro
 //   registration channel)
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/drasko/edgex-export"
@@ -213,7 +215,14 @@ func updateRunningRegistrations(running map[string]*RegistrationInfo,
 }
 
 // Loop - registration loop
-func Loop(errChan chan error, eventCh chan *export.Event) {
+func Loop(config Config, errChan chan error, eventCh chan *export.Event) {
+
+	cfg = config
+	go func() {
+		p := fmt.Sprintf(":%d", cfg.Port)
+		logger.Info("Starting Export Distro", zap.String("url", p))
+		errChan <- http.ListenAndServe(p, httpServer())
+	}()
 
 	registrations := make(map[string]*RegistrationInfo)
 

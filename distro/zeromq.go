@@ -18,7 +18,6 @@ import (
 )
 
 const (
-	dataHost   = "127.0.0.1"
 	zeroMQPort = 5563
 )
 
@@ -31,7 +30,7 @@ func initZmq(eventCh chan *export.Event) {
 	defer q.Close()
 
 	logger.Info("Connecting to zmq...")
-	url := fmt.Sprintf("tcp://%s:%d", dataHost, zeroMQPort)
+	url := fmt.Sprintf("tcp://%s:%d", cfg.DataHost, zeroMQPort)
 	q.Connect(url)
 	logger.Info("Connected to zmq")
 	q.SetSubscribe("")

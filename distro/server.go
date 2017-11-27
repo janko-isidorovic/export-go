@@ -59,7 +59,7 @@ func replyNotifyRegistrations(w http.ResponseWriter, r *http.Request) {
 }
 
 // HTTPServer function
-func HTTPServer() http.Handler {
+func httpServer() http.Handler {
 	mux := bone.New()
 
 	mux.Get("/api/v1/ping", http.HandlerFunc(replyPing))
