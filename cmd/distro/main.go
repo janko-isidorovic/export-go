@@ -54,11 +54,10 @@ func main() {
 }
 
 func loadConfig() distro.Config {
-	return distro.Config{
-		Port:       distro.DefaultPort,
-		ClientHost: env(envClientHost, distro.DefaultClientHost),
-		DataHost:   env(envDataHost, distro.DefaultDataHost),
-	}
+	cfg := distro.GetDefaultConfig()
+	cfg.ClientHost = env(envClientHost, cfg.ClientHost)
+	cfg.DataHost = env(envDataHost, cfg.DataHost)
+	return cfg
 }
 
 func env(key, fallback string) string {

@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	DefaultPort       = 48070
-	DefaultClientHost = "127.0.0.1"
-	DefaultDataHost   = "127.0.0.1"
+	defaultPort       = 48070
+	defaultClientHost = "127.0.0.1"
+	defaultDataHost   = "127.0.0.1"
 )
 
 // Sender - Send interface
@@ -60,3 +60,11 @@ type Config struct {
 }
 
 var cfg Config
+
+func GetDefaultConfig() Config {
+	return Config{
+		Port:       defaultPort,
+		ClientHost: defaultClientHost,
+		DataHost:   defaultDataHost,
+	}
+}
