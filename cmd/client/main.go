@@ -31,8 +31,8 @@ const (
 	defMongoPassword       string = ""
 	defMongoDatabase       string = "coredata"
 	defMongoPort           int    = 27017
-	defMongoConnectTimeout int    = 120000
-	defMongoSocketTimeout  int    = 60000
+	defMongoConnectTimeout int    = 5000
+	defMongoSocketTimeout  int    = 5000
 	envMongoURL            string = "EXPORT_CLIENT_MONGO_URL"
 )
 
