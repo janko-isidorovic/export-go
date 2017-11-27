@@ -15,6 +15,7 @@ type Message struct {
 
 // Event - packet of Readings
 type Event struct {
+	ID       string    `json:"id,omitempty"`
 	Pushed   int64     `json:"pushed"`
 	Device   string    `json:"device,omitempty"`
 	Readings []Reading `json:"readings,omitempty"`
@@ -25,6 +26,7 @@ type Event struct {
 
 // Reading - Sensor measurement
 type Reading struct {
+	ID       string `json:"id,omitempty"`
 	Pushed   int64  `json:"pushed"`
 	Name     string `json:"name,omitempty"`
 	Value    string `json:"value,omitempty"`
