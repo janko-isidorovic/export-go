@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	// TODO this consts need to be configurable somehow
-	distroHost     = "127.0.0.1"
 	distroPort int = 48070
 )
 
@@ -289,9 +287,8 @@ func delRegByName(w http.ResponseWriter, r *http.Request) {
 
 func notifyUpdatedRegistrations(update export.NotifyUpdate) {
 	go func() {
-		// TODO make configurable distro host/port
 		client := &http.Client{}
-		url := "http://" + distroHost + ":" + strconv.Itoa(distroPort) +
+		url := "http://" + cfg.DistroHost + ":" + strconv.Itoa(distroPort) +
 			"/api/v1/notify/registrations"
 
 		data, err := json.Marshal(update)
