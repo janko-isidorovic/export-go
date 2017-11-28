@@ -7,6 +7,11 @@
 package distro
 
 import (
+	"bytes"
+	"compress/gzip"
+	"compress/zlib"
+	"encoding/base64"
+	"io/ioutil"
 	"testing"
 )
 
@@ -21,8 +26,25 @@ func TestGzip(t *testing.T) {
 	comp := gzipTransformer{}
 	enc := comp.Transform([]byte(clearString))
 
-	if string(enc) != gzipString {
-		t.Fatal("Encoded string ", string(enc), " is not ", gzipString)
+	compressed, err := base64.StdEncoding.DecodeString(string(enc))
+	if err != nil {
+		t.Fatal("Error base64 ", err)
+	}
+
+	var buf bytes.Buffer
+	buf.Write(compressed)
+
+	zr, err := gzip.NewReader(&buf)
+	if err != nil {
+		t.Fatal("Error decoding buffer ", err)
+	}
+	decoded, err := ioutil.ReadAll(zr)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if string(decoded) != clearString {
+		t.Fatal("Decoded string ", string(enc), " is not ", clearString)
 	}
 }
 
@@ -30,8 +52,26 @@ func TestZlib(t *testing.T) {
 
 	comp := zlibTransformer{}
 	enc := comp.Transform([]byte(clearString))
-	if string(enc) != zlibString {
-		t.Fatal("Encoded string ", string(enc), " is not ", zlibString)
+
+	compressed, err := base64.StdEncoding.DecodeString(string(enc))
+	if err != nil {
+		t.Fatal("Error base64 ", err)
+	}
+
+	var buf bytes.Buffer
+	buf.Write(compressed)
+
+	zr, err := zlib.NewReader(&buf)
+	if err != nil {
+		t.Fatal("Error decoding buffer ", err)
+	}
+	decoded, err := ioutil.ReadAll(zr)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if string(decoded) != clearString {
+		t.Fatal("Decoded string ", string(enc), " is not ", clearString)
 	}
 }
 
