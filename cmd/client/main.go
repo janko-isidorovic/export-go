@@ -10,7 +10,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -34,6 +33,7 @@ const (
 	defMongoConnectTimeout int    = 5000
 	defMongoSocketTimeout  int    = 5000
 	envMongoURL            string = "EXPORT_CLIENT_MONGO_URL"
+	envDistroHost          string = "EXPORT_CLIENT_DISTRO_HOST"
 )
 
 type config struct {
@@ -48,7 +48,7 @@ type config struct {
 }
 
 func main() {
-	cfg := loadConfig()
+	cfg, clientCfg := loadConfig()
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -67,11 +67,7 @@ func main() {
 
 	errs := make(chan error, 2)
 
-	go func() {
-		p := fmt.Sprintf(":%d", cfg.Port)
-		logger.Info("Starting Export Client", zap.String("url", p))
-		errs <- http.ListenAndServe(p, client.HTTPServer())
-	}()
+	client.StartHTTPServer(*clientCfg, errs)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -83,9 +79,9 @@ func main() {
 	logger.Info("terminated", zap.String("error", c.Error()))
 }
 
-func loadConfig() *config {
-	return &config{
-		Port:                port,
+func loadConfig() (*config, *client.Config) {
+
+	cfg := config{
 		MongoURL:            env(envMongoURL, defMongoURL),
 		MongoUser:           defMongoUsername,
 		MongoPass:           defMongoPassword,
@@ -94,6 +90,11 @@ func loadConfig() *config {
 		MongoConnectTimeout: defMongoConnectTimeout,
 		MongoSocketTimeout:  defMongoSocketTimeout,
 	}
+
+	clientCfg := client.GetDefaultConfig()
+	clientCfg.DistroHost = env(envDistroHost, clientCfg.DistroHost)
+
+	return &cfg, &clientCfg
 }
 
 func env(key, fallback string) string {

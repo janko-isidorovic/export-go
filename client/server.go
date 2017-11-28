@@ -7,13 +7,15 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-zoo/bone"
+	"go.uber.org/zap"
 )
 
 // HTTPServer function
-func HTTPServer() http.Handler {
+func httpServer() http.Handler {
 	mux := bone.New()
 
 	// Status
@@ -30,4 +32,13 @@ func HTTPServer() http.Handler {
 	mux.Delete("/api/v1/registration/name/:name", http.HandlerFunc(delRegByName))
 
 	return mux
+}
+
+func StartHTTPServer(config Config, errChan chan error) {
+	cfg = config
+	go func() {
+		p := fmt.Sprintf(":%d", cfg.Port)
+		logger.Info("Starting Export Client", zap.String("url", p))
+		errChan <- http.ListenAndServe(p, httpServer())
+	}()
 }
