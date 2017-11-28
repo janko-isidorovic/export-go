@@ -21,7 +21,6 @@ const (
 	plainString = "This is the test string used for testing"
 	iv          = "123456789012345678901234567890"
 	key         = "aquqweoruqwpeoruqwpoeruqwpoierupqoweiurpoqwiuerpqowieurqpowieurpoqiweuroipwqure"
-	blockSize   = 16
 )
 
 func aesDecrypt(crypt []byte, aesData export.EncryptionDetails) []byte {
