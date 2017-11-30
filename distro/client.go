@@ -20,14 +20,17 @@ const (
 	clientPort int = 48071
 )
 
-func getRegistrationURL(host string) string {
+func getRegistrationBaseURL(host string) string {
 	return "http://" + host + ":" + strconv.Itoa(clientPort) +
 		"/api/v1/registration"
 }
 
 func getRegistrations() []export.Registration {
-	url := getRegistrationURL(cfg.ClientHost)
+	url := getRegistrationBaseURL(cfg.ClientHost)
+	return getRegistrationsURL(url)
+}
 
+func getRegistrationsURL(url string) []export.Registration {
 	response, err := http.Get(url)
 	if err != nil {
 		logger.Warn("Error getting all registrations", zap.String("url", url))
@@ -50,7 +53,11 @@ func getRegistrations() []export.Registration {
 }
 
 func getRegistrationByName(name string) *export.Registration {
-	url := getRegistrationURL(cfg.ClientHost) + "/name/" + name
+	url := getRegistrationBaseURL(cfg.ClientHost) + "/name/" + name
+	return getRegistrationByNameURL(url)
+}
+
+func getRegistrationByNameURL(url string) *export.Registration {
 
 	response, err := http.Get(url)
 	if err != nil {
