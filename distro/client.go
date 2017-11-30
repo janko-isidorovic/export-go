@@ -41,6 +41,7 @@ func getRegistrationsURL(url string) []export.Registration {
 	registrations := []export.Registration{}
 	if err := json.NewDecoder(response.Body).Decode(&registrations); err != nil {
 		logger.Warn("Could not parse json", zap.Error(err))
+		return nil
 	}
 
 	results := registrations[:0]
