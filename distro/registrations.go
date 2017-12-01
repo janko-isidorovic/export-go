@@ -118,10 +118,10 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 func (reg RegistrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
-	var filtered bool
-	for i := range reg.filter {
-		filtered, event = reg.filter[i].Filter(event)
-		if !filtered {
+	for _, f := range reg.filter {
+		var accepted bool
+		accepted, event = f.Filter(event)
+		if !accepted {
 			logger.Info("Event filtered")
 			return
 		}
