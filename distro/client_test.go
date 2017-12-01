@@ -45,7 +45,7 @@ func TestClientRegistrationsEmpty(t *testing.T) {
 }
 
 func TestClientRegistrations(t *testing.T) {
-	logger, _ = zap.NewProduction()
+	logger = zap.NewNop()
 	defer logger.Sync()
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func TestClientRegistrations(t *testing.T) {
 }
 
 func TestClientRegistrationsInvalid(t *testing.T) {
-	logger, _ = zap.NewProduction()
+	logger = zap.NewNop()
 	defer logger.Sync()
 
 	invalidList := []string{invalidReply1, invalidReply2}
