@@ -6,13 +6,6 @@
 
 package export
 
-// Message - Encapsulating / wrapper message object that contains Event
-// to be exported and the client export registration details
-type Message struct {
-	Registration Registration
-	Evt          Event
-}
-
 // Event - packet of Readings
 type Event struct {
 	ID       string    `json:"id,omitempty"`
