@@ -25,9 +25,13 @@ func newDevIdFilter(filter export.Filter) Filterer {
 
 func (filter devIdFilterDetails) Filter(event *export.Event) (bool, *export.Event) {
 
-	for i := range filter.deviceIDs {
-		if event.Device == filter.deviceIDs[i] {
-			logger.Debug("Event filtered", zap.Any("Event", event))
+	if event == nil {
+		return false, nil
+	}
+
+	for _, devId := range filter.deviceIDs {
+		if event.Device == devId {
+			logger.Debug("Event accepted", zap.Any("Event", event))
 			return true, event
 		}
 	}
@@ -47,6 +51,10 @@ func newValueDescFilter(filter export.Filter) Filterer {
 
 func (filter valueDescFilterDetails) Filter(event *export.Event) (bool, *export.Event) {
 
+	if event == nil {
+		return false, nil
+	}
+
 	auxEvent := &export.Event{
 		Pushed:   event.Pushed,
 		Device:   event.Device,
@@ -56,13 +64,13 @@ func (filter valueDescFilterDetails) Filter(event *export.Event) (bool, *export.
 		Readings: []export.Reading{},
 	}
 
-	for i := range filter.valueDescIDs {
-		for j := range event.Readings {
-			if event.Readings[j].Name == filter.valueDescIDs[i] {
-				logger.Debug("Reading filtered", zap.Any("Reading", event.Readings[j]))
-				auxEvent.Readings = append(auxEvent.Readings, event.Readings[j])
+	for _, filterId := range filter.valueDescIDs {
+		for _, reading := range event.Readings {
+			if reading.Name == filterId {
+				logger.Debug("Reading filtered", zap.Any("Reading", reading))
+				auxEvent.Readings = append(auxEvent.Readings, reading)
 			}
 		}
 	}
-	return true, auxEvent
+	return len(auxEvent.Readings) > 0, auxEvent
 }
