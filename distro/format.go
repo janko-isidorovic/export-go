@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 
-	"github.com/drasko/edgex-export"
+	"github.com/edgexfoundry/export-go"
 	"go.uber.org/zap"
 )
 

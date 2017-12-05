@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/drasko/edgex-export/client"
-	"github.com/drasko/edgex-export/mongo"
+	"github.com/edgexfoundry/export-go/client"
+	"github.com/edgexfoundry/export-go/mongo"
 
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"

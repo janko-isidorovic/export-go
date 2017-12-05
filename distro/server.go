@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/drasko/edgex-export"
+	"github.com/edgexfoundry/export-go"
 	"github.com/go-zoo/bone"
 	"go.uber.org/zap"
 )
