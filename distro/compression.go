@@ -17,7 +17,7 @@ type gzipTransformer struct {
 	writer *gzip.Writer
 }
 
-func (gzt gzipTransformer) Transform(data []byte) []byte {
+func (gzt *gzipTransformer) Transform(data []byte) []byte {
 	var buf bytes.Buffer
 
 	if gzt.writer == nil {
@@ -36,7 +36,7 @@ type zlibTransformer struct {
 	writer *zlib.Writer
 }
 
-func (zlt zlibTransformer) Transform(data []byte) []byte {
+func (zlt *zlibTransformer) Transform(data []byte) []byte {
 	var buf bytes.Buffer
 
 	if zlt.writer == nil {

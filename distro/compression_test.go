@@ -46,6 +46,12 @@ func TestGzip(t *testing.T) {
 	if string(decoded) != clearString {
 		t.Fatal("Decoded string ", string(enc), " is not ", clearString)
 	}
+
+	enc2 := comp.Transform([]byte(clearString))
+
+	if !bytes.Equal(enc, enc2) {
+		t.Fatal("Output should be the same", string(enc), " is not ", string(enc2))
+	}
 }
 
 func TestZlib(t *testing.T) {
@@ -72,6 +78,12 @@ func TestZlib(t *testing.T) {
 
 	if string(decoded) != clearString {
 		t.Fatal("Decoded string ", string(enc), " is not ", clearString)
+	}
+
+	enc2 := comp.Transform([]byte(clearString))
+
+	if !bytes.Equal(enc, enc2) {
+		t.Fatal("Output should be the same", string(enc), " is not ", string(enc2))
 	}
 }
 
