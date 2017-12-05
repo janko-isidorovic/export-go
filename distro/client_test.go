@@ -135,3 +135,39 @@ func TestClientRegistrationsInvalidRegistration2(t *testing.T) {
 		t.Fatal("Registration should be empty")
 	}
 }
+
+func TestClientRegistrationByName(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, registrationStr)
+	}
+
+	// create test server with handler
+	ts := httptest.NewServer(http.HandlerFunc(handler))
+	defer ts.Close()
+
+	reg := getRegistrationByNameURL(ts.URL)
+	if reg == nil {
+		t.Fatal("nil registration")
+	}
+}
+
+func TestClientRegistrationByNameError(t *testing.T) {
+	invalidList := []string{invalidReply1, invalidReply2, registrationInvalidStr}
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		var ir string
+		ir, invalidList = invalidList[0], invalidList[1:]
+		fmt.Fprint(w, ir)
+	}
+
+	// create test server with handler
+	ts := httptest.NewServer(http.HandlerFunc(handler))
+	defer ts.Close()
+
+	for range invalidList {
+		reg := getRegistrationByNameURL(ts.URL)
+		if reg != nil {
+			t.Fatal("Registration should be nil")
+		}
+	}
+}
