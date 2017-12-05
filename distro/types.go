@@ -39,7 +39,7 @@ type Filterer interface {
 }
 
 // RegistrationInfo - registration info
-type RegistrationInfo struct {
+type registrationInfo struct {
 	registration export.Registration
 	format       Formater
 	compression  Transformer
