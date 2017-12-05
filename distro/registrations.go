@@ -62,9 +62,9 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.CompNone:
 		reg.compression = nil
 	case export.CompGzip:
-		reg.compression = gzipTransformer{}
+		reg.compression = &gzipTransformer{}
 	case export.CompZip:
-		reg.compression = zlibTransformer{}
+		reg.compression = &zlibTransformer{}
 	default:
 		logger.Info("Compression not supported: ", zap.String("compression", newReg.Compression))
 	}
