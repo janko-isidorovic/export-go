@@ -28,15 +28,15 @@ func RefreshRegistrations(update export.NotifyUpdate) {
 	registrationChanges <- update
 }
 
-func newRegistrationInfo() *RegistrationInfo {
-	reg := &RegistrationInfo{}
+func newRegistrationInfo() *registrationInfo {
+	reg := &registrationInfo{}
 
 	reg.chRegistration = make(chan *export.Registration)
 	reg.chEvent = make(chan *export.Event)
 	return reg
 }
 
-func (reg *RegistrationInfo) update(newReg export.Registration) bool {
+func (reg *registrationInfo) update(newReg export.Registration) bool {
 	reg.registration = newReg
 
 	reg.format = nil
@@ -54,7 +54,8 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.FormatCSV:
 		// TODO reg.format = distro.NewCsvFormat()
 	default:
-		logger.Info("Format not supported: ", zap.String("format", newReg.Format))
+		logger.Warn("Format not supported: ", zap.String("format", newReg.Format))
+		return false
 	}
 
 	reg.compression = nil
@@ -66,7 +67,8 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.CompZip:
 		reg.compression = &zlibTransformer{}
 	default:
-		logger.Info("Compression not supported: ", zap.String("compression", newReg.Compression))
+		logger.Warn("Compression not supported: ", zap.String("compression", newReg.Compression))
+		return false
 	}
 
 	reg.sender = nil
@@ -82,13 +84,9 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.DestRest:
 		reg.sender = NewHTTPSender(newReg.Addressable)
 	default:
-		logger.Info("Destination not supported: ", zap.String("destination", newReg.Destination))
-	}
-	if reg.format == nil || reg.sender == nil {
-		logger.Error("Registration not supported")
+		logger.Warn("Destination not supported: ", zap.String("destination", newReg.Destination))
 		return false
 	}
-
 	reg.encrypt = nil
 	switch newReg.Encryption.Algo {
 	case export.EncNone:
@@ -96,26 +94,26 @@ func (reg *RegistrationInfo) update(newReg export.Registration) bool {
 	case export.EncAes:
 		reg.encrypt = NewAESEncryption(newReg.Encryption)
 	default:
-		logger.Info("Encryption not supported: ", zap.String("Algorithm", newReg.Encryption.Algo))
-
+		logger.Warn("Encryption not supported: ", zap.String("Algorithm", newReg.Encryption.Algo))
+		return false
 	}
 
 	reg.filter = nil
 
 	if len(newReg.Filter.DeviceIDs) > 0 {
 		reg.filter = append(reg.filter, newDevIdFilter(newReg.Filter))
-		logger.Info("Device ID filter added: ", zap.Any("filters", newReg.Filter.DeviceIDs))
+		logger.Debug("Device ID filter added: ", zap.Any("filters", newReg.Filter.DeviceIDs))
 	}
 
 	if len(newReg.Filter.ValueDescriptorIDs) > 0 {
 		reg.filter = append(reg.filter, newValueDescFilter(newReg.Filter))
-		logger.Info("Value descriptor filter added: ", zap.Any("filters", newReg.Filter.ValueDescriptorIDs))
+		logger.Debug("Value descriptor filter added: ", zap.Any("filters", newReg.Filter.ValueDescriptorIDs))
 	}
 
 	return true
 }
 
-func (reg RegistrationInfo) processEvent(event *export.Event) {
+func (reg registrationInfo) processEvent(event *export.Event) {
 	// Valid Event Filter, needed?
 
 	for _, f := range reg.filter {
@@ -127,6 +125,10 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 		}
 	}
 
+	if reg.format == nil {
+		logger.Warn("registrationInfo with nil format")
+		return
+	}
 	formated := reg.format.Format(event)
 
 	compressed := formated
@@ -145,7 +147,7 @@ func (reg RegistrationInfo) processEvent(event *export.Event) {
 		zap.String("Name", reg.registration.Name))
 }
 
-func registrationLoop(reg *RegistrationInfo) {
+func registrationLoop(reg *registrationInfo) {
 	logger.Info("registration loop started",
 		zap.String("Name", reg.registration.Name))
 	for {
@@ -172,7 +174,7 @@ func registrationLoop(reg *RegistrationInfo) {
 	}
 }
 
-func updateRunningRegistrations(running map[string]*RegistrationInfo,
+func updateRunningRegistrations(running map[string]*registrationInfo,
 	update export.NotifyUpdate) {
 
 	switch update.Operation {
@@ -224,7 +226,7 @@ func Loop(config Config, errChan chan error, eventCh chan *export.Event) {
 		errChan <- http.ListenAndServe(p, httpServer())
 	}()
 
-	registrations := make(map[string]*RegistrationInfo)
+	registrations := make(map[string]*registrationInfo)
 
 	allRegs := getRegistrations()
 
