@@ -22,6 +22,11 @@ Session.vim
 tags
 
 # Binary
-mainflux-http-sender
 cmd/client/client
 cmd/distro/distro
+edgexclient
+edgexdistro
+edgexdistro_zmq
+cov.out
+distroCoverage.html
+clientCoverage.html
