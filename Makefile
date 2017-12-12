@@ -2,20 +2,20 @@
 .PHONY: build test vet prepare edgexclient edgexdistro edgexdistro_zmq docker
 
 # Make exec targets phony to not track changes in go files. Compilation is fast
-.PHONY: edgexclient edgexdistro edgexdistro_zmq
+.PHONY: client distro distro_zmq
 
 default: build
 
-edgexclient:
-	go build -o edgexclient cmd/client/main.go
+client:
+	go build -o client cmd/client/main.go
 
-edgexdistro:
-	go build -o edgexdistro cmd/distro/main.go
+distro:
+	go build -o distro cmd/distro/main.go
 
-edgexdistro_zmq:
-	go build -o edgexdistro_zmq -tags zeromq cmd/distro/main.go
+distro_zmq:
+	go build -o distro_zmq -tags zeromq cmd/distro/main.go
 
-build: edgexclient edgexdistro edgexdistro_zmq
+build: client distro distro_zmq
 
 docker:
 	docker build -f Dockerfile.client  .
@@ -43,3 +43,7 @@ profile:
 
 prepare:
 	glide install
+
+clean:
+	rm -f client distro distro_zmq cov.out distroCoverage.html \
+       clientCoverage.html distro.cpu distro.mem

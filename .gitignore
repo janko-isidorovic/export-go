@@ -24,9 +24,9 @@ tags
 # Binary
 cmd/client/client
 cmd/distro/distro
-edgexclient
-edgexdistro
-edgexdistro_zmq
+client
+distro
+distro_zmq
 cov.out
 distroCoverage.html
 clientCoverage.html
