@@ -11,8 +11,8 @@ package distro
 import (
 	"strconv"
 
-	"github.com/drasko/edgex-export"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/edgexfoundry/export-go"
 	"go.uber.org/zap"
 )
 

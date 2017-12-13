@@ -13,7 +13,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 
-	"github.com/drasko/edgex-export"
+	"github.com/edgexfoundry/export-go"
 	"go.uber.org/zap"
 )
 

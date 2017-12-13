@@ -16,8 +16,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/drasko/edgex-export"
-	"github.com/drasko/edgex-export/mongo"
+	"github.com/edgexfoundry/export-go"
+	"github.com/edgexfoundry/export-go/mongo"
 	"github.com/go-zoo/bone"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2/bson"
